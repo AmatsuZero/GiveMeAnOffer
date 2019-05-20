@@ -59,14 +59,25 @@
 
 import Foundation
 
-extension Array where Element == Equatable {
-
+extension Array where Element:Equatable {// 里面元素遵守改协议
     @discardableResult
     public mutating func removeDuplicates() -> Int {
-        guard self.isEmpty else {
-            return 0
+        guard self.count > 1 else {
+            return self.count
         }
-
+        var count = 1
+        for i in 1..<self.count where self[i] != self[i-1] {
+            self[count] = self[i]
+            count += 1
+        }
+        self.removeLast(self.count - count)
         return self.count
     }
+    
+    public func unique() -> [Element] {
+        var temp = Array(self)
+        temp.removeDuplicates()
+        return temp
+    }
 }
+
