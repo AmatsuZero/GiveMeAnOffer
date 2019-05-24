@@ -44,7 +44,7 @@
 import Foundation
 
 extension String {
-    func strStr(_ needle: String) -> Int {
+    public func strStr(_ needle: String) -> Int {
         guard !needle.isEmpty else {
             return 0
         }

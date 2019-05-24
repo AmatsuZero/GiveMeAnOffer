@@ -7,8 +7,7 @@ public func allTests() -> [XCTestCaseEntry] {
         testCase(ValidParentheses.allTests),
         testCase(MergeTwoSortedLists.allTests),
         testCase(RemoveDuplicatesTests.allTests),
-        testCase(StrStrTests.allTests),
-        testCase(SearchInsertTests.allTests)
+        testCase(StrStrTests.allTests)
     ]
 }
 #endif
