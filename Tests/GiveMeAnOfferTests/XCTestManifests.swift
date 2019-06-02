@@ -10,7 +10,8 @@ public func allTests() -> [XCTestCaseEntry] {
         testCase(StrStrTests.allTests),
         testCase(IsPalindromeIntTests.allTests),
         testCase(IsPalindromeStringTests.allTests),
-        testCase(PlusOneTests.allTests)
+        testCase(PlusOneTests.allTests),
+        testCase(SingleNumberTests.allTests)
     ]
 }
 #endif
