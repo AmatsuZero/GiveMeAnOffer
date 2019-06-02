@@ -46,7 +46,7 @@
 import Foundation
 
 extension Int {
-    var isPalindrome: Bool {
+    public var isPalindrome: Bool {
         guard self >= 0 else {
             return false
         }

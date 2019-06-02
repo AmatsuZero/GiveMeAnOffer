@@ -37,7 +37,7 @@
 import Foundation
 
 extension String {
-    var isPalindrome: Bool {
+    public var isPalindrome: Bool {
         if isEmpty {
             return true
         }
