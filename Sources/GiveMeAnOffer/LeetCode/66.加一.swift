@@ -8,7 +8,7 @@
 import Foundation
 
 extension Array where Element == Int {
-    func plusOne() -> [Element] {
+    public func plusOne() -> [Element] {
         var index = count - 1
         var copy = [Element](self)
         while index >= 0 {
