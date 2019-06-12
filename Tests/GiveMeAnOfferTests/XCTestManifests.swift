@@ -12,7 +12,8 @@ public func allTests() -> [XCTestCaseEntry] {
         testCase(IsPalindromeStringTests.allTests),
         testCase(PlusOneTests.allTests),
         testCase(SingleNumberTests.allTests),
-        testCase(ConvertToTitleTests.allTests)
+        testCase(ConvertToTitleTests.allTests),
+        testCase(MaxSubArrayTests.allTests)
     ]
 }
 #endif
