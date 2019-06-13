@@ -13,7 +13,6 @@ final class IsPalindromeStringTests: XCTestCase {
         XCTAssertTrue("A man, a plan, a canal: Panama".isPalindrome)
         XCTAssertFalse("race a car".isPalindrome)
         XCTAssertTrue("".isPalindrome)
-        print(123.binaryExpression)
     }
 
     static var allTests = [
