@@ -17,7 +17,8 @@ public func allTests() -> [XCTestCaseEntry] {
         testCase(ToeplitzMatrixTests.allTests),
         testCase(TenthLineTests.allTests),
         testCase(MySqrtTests.allTests),
-        testCase(MajorityElementTests.allTests)
+        testCase(MajorityElementTests.allTests),
+        testCase(GetSumTests.allTests)
     ]
 }
 #endif
