@@ -6,7 +6,7 @@ import Foundation
 
 public extension OptionSet where RawValue: FixedWidthInteger {
 
-    public func elements() -> AnySequence<Self> {
+    func elements() -> AnySequence<Self> {
         var remainingBits = rawValue
         var bitMask: RawValue = 1
         return AnySequence {

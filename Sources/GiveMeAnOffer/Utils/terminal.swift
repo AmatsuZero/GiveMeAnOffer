@@ -15,7 +15,12 @@ func shell(_ args: String...) -> (code: Int32, output: String?) {
 
     let pipe = Pipe()
     task.standardOutput = pipe
-    task.launch()
+    
+    if #available(OSX 10.13, *) {
+        try? task.run()
+    } else {
+        task.launch()
+    }
 
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
     let output = String(data: data, encoding: .utf8)

@@ -19,7 +19,8 @@ public func allTests() -> [XCTestCaseEntry] {
         testCase(MySqrtTests.allTests),
         testCase(MajorityElementTests.allTests),
         testCase(GetSumTests.allTests),
-        testCase(ArrayRotateTests.allTests)
+        testCase(ArrayRotateTests.allTests),
+        testCase(IsAnagramStringTests.allTests)
     ]
 }
 #endif
