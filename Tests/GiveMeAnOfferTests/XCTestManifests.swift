@@ -20,7 +20,8 @@ public func allTests() -> [XCTestCaseEntry] {
         testCase(MajorityElementTests.allTests),
         testCase(GetSumTests.allTests),
         testCase(ArrayRotateTests.allTests),
-        testCase(IsAnagramStringTests.allTests)
+        testCase(IsAnagramStringTests.allTests),
+        testCase(IsUglyIntTests.allTests)
     ]
 }
 #endif

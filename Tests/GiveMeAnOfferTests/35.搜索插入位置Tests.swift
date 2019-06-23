@@ -13,7 +13,7 @@ final class SearchInsertTests: XCTestCase {
     func testInput() {
         XCTAssertEqual([1,3,5,6].searchInsert(5), 2)
         XCTAssertEqual([1,3,5,6].searchInsert(2), 1)
-        XCTAssertEqual([1,3,5,6].searchInsert(7), 1)
+        XCTAssertEqual([1,3,5,6].searchInsert(7), 4)
         XCTAssertEqual([1,3,5,6].searchInsert(0), 0)
     }
     

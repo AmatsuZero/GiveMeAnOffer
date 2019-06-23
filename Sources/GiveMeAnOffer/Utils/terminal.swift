@@ -10,7 +10,6 @@ func shell(_ args: String...) -> (code: Int32, output: String?) {
     let task = Process()
     task.launchPath = "/usr/bin/env"
     task.arguments = args
-    task.launch()
     task.waitUntilExit()
 
     let pipe = Pipe()
