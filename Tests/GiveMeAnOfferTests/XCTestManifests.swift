@@ -21,7 +21,8 @@ public func allTests() -> [XCTestCaseEntry] {
         testCase(GetSumTests.allTests),
         testCase(ArrayRotateTests.allTests),
         testCase(IsAnagramStringTests.allTests),
-        testCase(IsUglyIntTests.allTests)
+        testCase(IsUglyIntTests.allTests),
+        testCase(MoveZeroTests.allTests)
     ]
 }
 #endif
