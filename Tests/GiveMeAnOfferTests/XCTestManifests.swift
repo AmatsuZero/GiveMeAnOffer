@@ -23,7 +23,10 @@ public func allTests() -> [XCTestCaseEntry] {
         testCase(IsAnagramStringTests.allTests),
         testCase(IsUglyIntTests.allTests),
         testCase(MoveZeroTests.allTests),
-        testCase(WordPatternTests.allTests)
+        testCase(WordPatternTests.allTests),
+        testCase(CanWinNimTests.allTests),
+        testCase(FizzBuzzTests.allTests),
+        testCase(ThirdMaxTests.allTests)
     ]
 }
 #endif

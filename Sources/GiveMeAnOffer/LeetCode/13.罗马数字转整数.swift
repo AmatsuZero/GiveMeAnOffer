@@ -73,14 +73,16 @@ import Foundation
  *
  */
 extension String {
-    static let romanTable: [Character: Int] = ["I": 1,
-                                   "V": 5,
-                                   "X": 10,
-                                   "L": 50,
-                                   "C": 100,
-                                   "D": 500,
-                                   "M": 1000]
-
+    static let romanTable: [Character: Int] = [
+        "I": 1,
+        "V": 5,
+        "X": 10,
+        "L": 50,
+        "C": 100,
+        "D": 500,
+        "M": 1000
+    ]
+    
     public func romanToInt() -> Int {
         guard self.allSatisfy({String.romanTable.keys.contains($0)}) else {
             return 0
