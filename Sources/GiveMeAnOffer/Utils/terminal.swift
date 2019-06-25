@@ -20,9 +20,11 @@ func shell(_ args: String...) -> (code: Int32, output: String?) {
     } else {
         task.launch()
     }
-
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
     let output = String(data: data, encoding: .utf8)
-
+    // 如果任务还在进行， Pending
+    while task.isRunning {
+        print("Shell Task: \(args.joined(separator: " ")) is Executing!")
+    }
     return (task.terminationStatus, output)
 }
