@@ -26,7 +26,9 @@ public func allTests() -> [XCTestCaseEntry] {
         testCase(WordPatternTests.allTests),
         testCase(CanWinNimTests.allTests),
         testCase(FizzBuzzTests.allTests),
-        testCase(ThirdMaxTests.allTests)
+        testCase(ThirdMaxTests.allTests),
+        testCase(CompressTests.allTests),
+        testCase(ReshapeTests.allTests)
     ]
 }
 #endif
