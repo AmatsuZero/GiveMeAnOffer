@@ -8,7 +8,7 @@
 import XCTest
 @testable import GiveMeAnOffer
 
-class HammingDistanceTests: XCTestCase {
+final class HammingDistanceTests: XCTestCase {
 
     func testInput() {
         XCTAssertEqual(1.hammingDistance(between: 4), 2)

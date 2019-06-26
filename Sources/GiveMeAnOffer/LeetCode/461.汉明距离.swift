@@ -5,8 +5,6 @@
 //  Created by 姜振华 on 2019/6/25.
 //
 
-import Foundation
-
 /*
  汉明距离
  Category    Difficulty    Likes    Dislikes
@@ -33,7 +31,16 @@ import Foundation
  
  上面的箭头指出了对应二进制位不同的位置。
  */
-
+import Foundation
+/*
+ 　思路：
+ 
+ 　　　　01.将两个给定的数进行 异或(^)运算后保存在变量a，汉明距离就是a的二进制中1的个数
+ 
+ 　　　　02.当a不为0时，和0x01进行按位与(&)运算。如果结果为1，则统计变量加1
+ 
+ 　　　　03.将a右移一位，重复第02步
+ */
 public extension Int {
     func hammingDistance(between y: Int) -> Int {
         var cnt = 0
