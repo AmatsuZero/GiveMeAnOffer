@@ -28,7 +28,8 @@ public func allTests() -> [XCTestCaseEntry] {
         testCase(FizzBuzzTests.allTests),
         testCase(ThirdMaxTests.allTests),
         testCase(CompressTests.allTests),
-        testCase(ReshapeTests.allTests)
+        testCase(ReshapeTests.allTests),
+        testCase(IsIsomorphicTests.allTests)
     ]
 }
 #endif
