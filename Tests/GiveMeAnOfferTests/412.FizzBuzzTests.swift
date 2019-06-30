@@ -6,8 +6,9 @@
 //
 
 import XCTest
+@testable import GiveMeAnOffer
 
-class FizzBuzzTests: XCTestCase {
+final class FizzBuzzTests: XCTestCase {
 
     func testInput() {
         XCTAssertEqual(15.fizzBuzz(), [

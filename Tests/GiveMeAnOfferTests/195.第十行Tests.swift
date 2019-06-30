@@ -22,14 +22,14 @@ final class TenthLineTests: XCTestCase {
                       Line 9
                       Line 10
                       """
-        let file = "\(NSTemporaryDirectory())file.txt"
+        let file = "\(FileManager.default.currentDirectoryPath)/file.txt"
         // 创建临时文件
         XCTAssertTrue(FileManager.default.createFile(atPath: file, contents: content.data(using: .utf8)), "创建临时文件失败")
         defer {
             // 删除临时文件
             try? FileManager.default.removeItem(atPath: file)
         }
-        XCTAssertEqual(FileManager.default.tenthLine(filePath: file), "Line 10\n")
+        XCTAssertEqual(FileManager.default.tenthLine(filePath: file), "Line 10")
     }
 
     static var allTests = [

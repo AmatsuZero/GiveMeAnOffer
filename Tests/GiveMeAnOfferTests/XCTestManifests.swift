@@ -30,7 +30,8 @@ public func allTests() -> [XCTestCaseEntry] {
         testCase(CompressTests.allTests),
         testCase(ReshapeTests.allTests),
         testCase(IsIsomorphicTests.allTests),
-        testCase(MissingNumberTests.allTests)
+        testCase(MissingNumberTests.allTests),
+        testCase(CanConstructTests.allTests)
     ]
 }
 #endif

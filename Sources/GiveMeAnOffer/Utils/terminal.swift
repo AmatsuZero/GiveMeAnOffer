@@ -14,12 +14,8 @@ func shell(_ args: String...) -> (code: Int32, output: String?) {
 
     let pipe = Pipe()
     task.standardOutput = pipe
-    
-    if #available(OSX 10.13, *) {
-        try? task.run()
-    } else {
-        task.launch()
-    }
+
+    task.launch()
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
     let output = String(data: data, encoding: .utf8)
     // 如果任务还在进行， Pending
