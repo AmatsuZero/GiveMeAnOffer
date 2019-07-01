@@ -25,6 +25,9 @@ class ChatRoomTests: XCTestCase {
          chatRoom.sendText(message: "Ay mang, wut's good?")
     }
 
+    static var allTests = [
+        ("Socket 聊天室", testSendText),
+    ]
 }
 
 extension ChatRoomTests: ChatRoomDelegate {

@@ -32,7 +32,8 @@ public func allTests() -> [XCTestCaseEntry] {
         testCase(IsIsomorphicTests.allTests),
         testCase(MissingNumberTests.allTests),
         testCase(CanConstructTests.allTests),
-        testCase(FirstUniqChartTests.allTests)
+        testCase(FirstUniqChartTests.allTests),
+        testCase(ChatRoomTests.allTests)
     ]
 }
 #endif

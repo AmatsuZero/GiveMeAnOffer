@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CoreFoundation
 
 // https://www.raywenderlich.com/537-real-time-communication-with-streams-tutorial-for-ios
 public protocol ChatRoomDelegate: class {
@@ -23,23 +24,22 @@ public class ChatRoom: NSObject {
     weak var delegate: ChatRoomDelegate?
     
     public func setup(address: String = "localhost", port: UInt32 = 80)  {
-        // 1
+
         var readStream: Unmanaged<CFReadStream>?
         var writeStream: Unmanaged<CFWriteStream>?
-        
-        // 2
+
         CFStreamCreatePairWithSocketToHost(kCFAllocatorDefault,
-                                           address as CFString,
+                                           address as! CFString,
                                            port,
                                            &readStream,
                                            &writeStream)
         
-        inputStream = readStream?.takeRetainedValue()
+        inputStream = readStream?.takeRetainedValue() as? InputStream
         inputStream?.delegate = self
-        outputStream = writeStream?.takeRetainedValue()
+        outputStream = writeStream?.takeRetainedValue() as? OutputStream
         
-        inputStream?.schedule(in: .current, forMode: .common)
-        outputStream?.schedule(in: .current, forMode: .common)
+        inputStream?.schedule(in: .current, forMode: .commonModes)
+        outputStream?.schedule(in: .current, forMode: .commonModes)
         
         inputStream?.open()
         outputStream?.open()

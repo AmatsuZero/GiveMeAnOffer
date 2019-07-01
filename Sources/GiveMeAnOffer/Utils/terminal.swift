@@ -20,7 +20,12 @@ func shell(_ args: String...) -> (code: Int32, output: String?) {
     let output = String(data: data, encoding: .utf8)
     // 如果任务还在进行， Pending
     while task.isRunning {
+        #if DEBUG
         print("Shell Task: \(args.joined(separator: " ")) is Executing!")
+        #endif
     }
+    #if DEBUG
+    print("Shell Task: \(args.joined(separator: " ")) has completed!")
+    #endif
     return (task.terminationStatus, output)
 }
