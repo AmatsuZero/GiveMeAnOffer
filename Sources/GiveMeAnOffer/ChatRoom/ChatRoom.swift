@@ -38,8 +38,8 @@ public class ChatRoom: NSObject {
         inputStream?.delegate = self
         outputStream = writeStream?.takeRetainedValue() as? OutputStream
         
-        inputStream?.schedule(in: .current, forMode: .commonModes)
-        outputStream?.schedule(in: .current, forMode: .commonModes)
+        inputStream?.schedule(in: .current, forMode: .common)
+        outputStream?.schedule(in: .current, forMode: .common)
         
         inputStream?.open()
         outputStream?.open()
@@ -58,7 +58,6 @@ public class ChatRoom: NSObject {
         guard let data = "msg:\(message)".data(using: .utf8) else {
             return
         }
-        
         _ = data.withUnsafeBytes { outputStream?.write($0, maxLength: data.count) }
     }
     

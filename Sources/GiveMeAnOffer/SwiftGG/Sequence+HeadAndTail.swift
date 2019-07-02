@@ -6,10 +6,15 @@ import Foundation
 
 // https://swift.gg/2019/06/24/sequence-head-tail/
 
-extension Sequence {
+public extension Collection {
+    var headAndTail: (head: Element, tail: SubSequence)? {
+        guard let head = first else { return nil }
+        return (head, dropFirst())
+    }
+}
 
-    @available(swift 4.2)
-    public var headAndTail: (head: Element, tail: SubSequence)? {
+public extension Sequence {
+    var headAndTail: (head: Element, tail: DropWhileSequence<Self>)? {
         var first: Element? = nil
         let tail = drop(while: { element in
             if first == nil {
