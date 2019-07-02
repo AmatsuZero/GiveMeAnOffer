@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Categories on Give Me An Offer</title>
+    <link>https://amatsuzero.github.io/GiveMeAnOffer/categories/</link>
+    <description>Recent content in Categories on Give Me An Offer</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <managingEditor>jzh16s@hotmail.com (姜振华)</managingEditor>
+    <webMaster>jzh16s@hotmail.com (姜振华)</webMaster>
+    
+	<atom:link href="https://amatsuzero.github.io/GiveMeAnOffer/categories/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+  </channel>
+</rss>
