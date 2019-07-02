@@ -1,3 +1,25 @@
-baseURL = "http://example.org/"
-languageCode = "en-us"
-title = "My New Hugo Site"
+
+baseURL = "https://amatsuzero.github.io/GiveMeAnOffer/"
+languageCode = "zh-CN"
+title = "Give Me An Offer"
+publishDir="../docs"
+theme="hyde-y"
+
+# Pagination
+paginate = 10
+paginatePath = "page"
+
+
+[author]
+    name = "姜振华"
+    email = "jzh16s@hotmail.com"
+
+[params]
+    brand = "Daubert"
+    github = "AmatsuZero"
+    linkedin = "jiangzhenhua"
+    facebook = "AmatsuZero"
+    twitter = "AmatsuZero"
+    googleAnalytics = "UA-117515369-1"
+    sidebar = "left"
+
