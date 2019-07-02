@@ -29,7 +29,7 @@ final class TenthLineTests: XCTestCase {
             // 删除临时文件
             try? FileManager.default.removeItem(atPath: file)
         }
-        XCTAssertEqual(FileManager.default.tenthLine(filePath: file), "Line 10\n")
+        XCTAssertEqual(FileManager.default.tenthLine(filePath: file), "Line 10")
     }
 
     static var allTests = [

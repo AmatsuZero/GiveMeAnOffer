@@ -1,5 +1,5 @@
 //
-//  88.合并两个有序数组.swift
+//  88.合并两个有序数组Tests.swift
 //  GiveMeAnOffer
 //
 //  Created by 姜振华 on 2019/7/2.
@@ -27,8 +27,40 @@ import Foundation
 
  */
 public extension Array where Element: Comparable {
+
+    func merge(withSortedArray array: [Element]) -> [Element] {
+        var newArray = self + array
+        var k = self.count + array.count - 1
+        var i = self.count - 1, j = array.count - 1
+
+        while i >= 0, j >= 0 {
+            if newArray[i] > array[j] {
+                newArray[k] = newArray[i]
+                k -= 1
+                i -= 1
+            } else {
+                newArray[k] = array[j]
+                k -= 1
+                j -= 1
+            }
+        }
+
+        while i >= 0 {
+            newArray[k] = newArray[i]
+            k -= 1
+            i -= 1
+        }
+
+        while j >= 0 {
+            newArray[k] = array[j]
+            k -= 1
+            j -= 1
+        }
+
+        return newArray
+    }
     
-    mutating func merge(with array: [Element]) {
+    mutating func merge(withSortedArray array: [Element]) {
         var k = self.count + array.count - 1
         var i = self.count - 1, j = array.count - 1
         

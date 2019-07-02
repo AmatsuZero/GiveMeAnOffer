@@ -2,8 +2,6 @@
 // Created by daubert on 19-5-26.
 //
 
-import Foundation
-
 import XCTest
 @testable import GiveMeAnOffer
 
