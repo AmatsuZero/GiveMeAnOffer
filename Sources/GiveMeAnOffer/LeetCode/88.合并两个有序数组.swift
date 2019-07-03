@@ -29,9 +29,10 @@ import Foundation
 public extension Array where Element: Comparable {
 
     func merge(withSortedArray array: [Element]) -> [Element] {
-        var newArray = self + array
-        var k = self.count + array.count - 1
-        var i = self.count - 1, j = array.count - 1
+        var newArray = self
+        var k = self.count - 1,
+        j = array.count - 1,
+        i = k - j - 1
 
         while i >= 0, j >= 0 {
             if newArray[i] > array[j] {
@@ -50,44 +51,13 @@ public extension Array where Element: Comparable {
             k -= 1
             i -= 1
         }
-
+        
         while j >= 0 {
             newArray[k] = array[j]
             k -= 1
             j -= 1
         }
-
+       
         return newArray
-    }
-    
-    mutating func merge(withSortedArray array: [Element]) {
-        var k = self.count + array.count - 1
-        var i = self.count - 1, j = array.count - 1
-        
-        self += array
-        
-        while i >= 0, j >= 0 {
-            if self[i] > array[j] {
-                self[k] = self[i]
-                k -= 1
-                i -= 1
-            } else {
-                self[k] = array[j]
-                k -= 1
-                j -= 1
-            }
-        }
-        
-        while i >= 0 {
-            self[k] = self[i]
-            k -= 1
-            i -= 1
-        }
-        
-        while j >= 0 {
-            self[k] = array[j]
-            k -= 1
-            j -= 1
-        }
     }
 }
