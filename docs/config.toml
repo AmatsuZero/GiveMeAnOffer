@@ -1,6 +1,7 @@
 baseURL = "https://amatsuzero.github.io/GiveMeAnOffer/"
 languageCode = "zh-CN"
 title = "Give Me An Offer"
+publishdir="./"
 
 theme = "terminal"
 paginate = 5
