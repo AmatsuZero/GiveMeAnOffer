@@ -1,23 +1,38 @@
 baseURL = "https://amatsuzero.github.io/GiveMeAnOffer/"
 languageCode = "zh-CN"
 title = "Give Me An Offer"
-publishDir="../docs"
-theme="hyde-y"
+publishdir="../docs"
 
-# Pagination
-paginate = 10
-paginatePath = "page"
-
+theme = "terminal"
+paginate = 5
 
 [author]
     name = "姜振华"
     email = "jzh16s@hotmail.com"
 
 [params]
-    brand = "Daubert"
-    github = "AmatsuZero"
-    linkedin = "jiangzhenhua"
-    facebook = "AmatsuZero"
-    twitter = "AmatsuZero"
-    googleAnalytics = "UA-117515369-1"
-    sidebar = "left"
+  fullWidthTheme = true
+  centerTheme = true
+  contentTypeName = "posts"
+  themeColor = "orange"
+  showMenuItems = 2
+
+[languages]
+  [languages.en]
+    title = "Terminal"
+    subtitle = "A simple, retro theme for Hugo"
+    keywords = ""
+    copyright = ""
+    menuMore = "Show more"
+    readMore = "Read more"
+    readOtherPosts = "Read other posts"
+
+    [languages.en.params.logo]
+      logoText = "Terminal"
+      logoHomeLink = "/"
+
+    [languages.en.menu]
+      [[languages.en.menu.main]]
+        identifier = "about"
+        name = "关于这个项目"
+        url = "/about"

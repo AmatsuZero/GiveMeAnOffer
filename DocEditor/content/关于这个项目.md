@@ -29,7 +29,7 @@ echo 'eval "$(swiftenv init -)"' >> ~/.bashrc
 source ~/.bashrc
 ``` 
 
-###### 注： 你可能听说过 [Linuxbrew](https://docs.brew.sh/Homebrew-on-Linux), 且大部分formula是根 [Homebrew](https://brew.sh/) 相通的。遗憾的是，swiftenv 并为不在其中。
+###### 注： 你可能听说过 [Linuxbrew](https://docs.brew.sh/Homebrew-on-Linux), 且大部分formula是根 [Homebrew](https://brew.sh/) 相通的。遗憾的是，swiftenv 并不在其中。
 
 接下来的安装就很简单了，我建议直接安装官网提供的产物，本项目目前是更新到了5.0.1版本，我们可以直接这样安装：
 
