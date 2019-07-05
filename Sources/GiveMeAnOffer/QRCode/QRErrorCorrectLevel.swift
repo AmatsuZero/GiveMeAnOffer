@@ -12,7 +12,7 @@ struct QRRSBlock {
     var dataCount: Int
 }
 
-enum QRErrorCorrectLevel: Int {
+public enum QRErrorCorrectLevel: Int {
     case M = 0, L, H, Q
     private static var RS_BLOCK: [[Int]] = {
         return [
@@ -263,7 +263,7 @@ enum QRErrorCorrectLevel: Int {
         ]
     }()
     
-    func rsBlockTable(type: Int) -> [Int] {
+    internal func rsBlockTable(type: Int) -> [Int] {
         switch self {
         case .L:
             return QRErrorCorrectLevel.RS_BLOCK[(type - 1) * 4 + 0]
@@ -276,7 +276,7 @@ enum QRErrorCorrectLevel: Int {
         }
     }
     
-    func rsBlocks(type: Int) -> [QRRSBlock] {
+    internal func rsBlocks(type: Int) -> [QRRSBlock] {
         let rsBlock = rsBlockTable(type: type)
         
         var list = [QRRSBlock]()

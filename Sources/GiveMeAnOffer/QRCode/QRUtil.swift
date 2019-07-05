@@ -225,9 +225,9 @@ enum QRBlockColor: String {
 
 extension String {
     
-    public func generateQR(isSmall: Bool) throws {
+    public func generateQR(isSmall: Bool, errorCorrectLevel: QRErrorCorrectLevel = .L) throws -> String {
         
-        let qrCode = QRCode(type: -1, errorCorrectLevel: .L)
+        let qrCode = QRCode(type: -1, errorCorrectLevel: errorCorrectLevel)
         qrCode.add(data: self)
         try qrCode.make()
         
@@ -270,14 +270,15 @@ extension String {
             }
         } else {
             let border = QRBlockColor.white.times(qrCode.moduleCount + 3)
-            
             output += border + "\n"
             qrCode.modules.forEach { row in
                 output += QRBlockColor.white.rawValue
-                output += row.map { $0! ? QRBlockColor.black.rawValue : QRBlockColor.white.rawValue }.joined()
+                output += row.map { $0 ?? false ? QRBlockColor.black.rawValue : QRBlockColor.white.rawValue }.joined()
                 output += QRBlockColor.white.rawValue + "\n"
             }
             output += border
         }
+
+        return output
     }
 }

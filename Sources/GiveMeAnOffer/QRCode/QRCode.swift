@@ -54,7 +54,7 @@ class QRCode {
     func make() throws {
         // Calculate automatically typeNumber if provided is < 1
         guard type < 1 else {
-            try makeImpl(test: false, maskPattern: getBestMaskPattern())
+            try makeImpl(test: false, maskPattern: try getBestMaskPattern())
             return
         }
         
@@ -79,13 +79,12 @@ class QRCode {
             typeNum += 1
         }
         self.type = typeNum
-        try makeImpl(test: false, maskPattern: getBestMaskPattern())
+        try makeImpl(test: false, maskPattern: try getBestMaskPattern())
     }
 }
 
 fileprivate extension QRCode {
     func setupPositionProbePattern(row: Int, col: Int) {
-        
         for r in -1...7 where row + r > -1 && moduleCount > row + r {
             for c in -1...7 where col + c > -1 && moduleCount > col + c {
                 var ret = (0 <= r && r <= 6 && (c == 0 || c == 6))
@@ -220,7 +219,7 @@ fileprivate extension QRCode {
         setupPositionProbePattern(row: 0, col: moduleCount - 7)
         setupPositionAdjustPattern()
         setupTypeInfo(test: test, maskPattern: maskPattern)
-        
+
         if type >= 7 {
             setupTypeNumber(test: test)
         }
@@ -332,38 +331,70 @@ fileprivate extension QRCode {
         // LEVEL3
         for row in 0..<moduleCount {
             for col in 0..<moduleCount - 6 {
-                var ret = try isDark(row: row, col: col)!
+                guard var ret = try isDark(row: row, col: col) else {
+                    continue
+                }
                 
-                if ret {
-                    let v = try isDark(row: row + 1, col: col)
-                    ret = ret && !v!
+                if ret, let v = try isDark(row: row, col: col + 1) {
+                    ret = ret && !v
+                }
+                
+                if ret, let v = try isDark(row: row, col: col + 2) {
+                    ret = ret && v
+                }
+                
+                if ret, let v = try isDark(row: row, col: col + 3) {
+                    ret = ret && v
+                }
+                
+                if ret, let v = try isDark(row: row, col: col + 4) {
+                    ret = ret && v
+                }
+                
+                if ret, let v = try isDark(row: row, col: col + 5) {
+                    ret = ret && !v
+                }
+                
+                if ret, let v = try isDark(row: row , col: col + 6) {
+                    ret = ret && v
                 }
                 
                 if ret {
-                    let v = try isDark(row: row + 2, col: col)
-                    ret = ret && v!
+                    lostPoint += 40
                 }
-                
-                if ret {
-                    let v = try isDark(row: row + 3, col: col)
-                    ret = ret && v!
+            }
+        }
+
+        for col in 0..<moduleCount {
+            for row in 0..<moduleCount - 6 {
+                guard var ret = try isDark(row: row, col: col) else {
+                    continue
                 }
-                
-                if ret {
-                    let v = try isDark(row: row + 4, col: col)
-                    ret = ret && v!
+
+                if ret, let v = try isDark(row: row + 1, col: col) {
+                    ret = ret && !v
                 }
-                
-                if ret {
-                    let v = try isDark(row: row + 5, col: col)
-                    ret = ret && !v!
+
+                if ret, let v = try isDark(row: row + 2, col: col) {
+                    ret = ret && v
                 }
-                
-                if ret {
-                    let v = try isDark(row: row + 6, col: col)
-                    ret = ret && v!
+
+                if ret, let v = try isDark(row: row + 3, col: col) {
+                    ret = ret && v
                 }
-                
+
+                if ret, let v = try isDark(row: row + 4, col: col) {
+                    ret = ret && v
+                }
+
+                if ret, let v = try isDark(row: row + 5, col: col) {
+                    ret = ret && !v
+                }
+
+                if ret, let v = try isDark(row: row + 6 , col: col) {
+                    ret = ret && v
+                }
+
                 if ret {
                     lostPoint += 40
                 }
