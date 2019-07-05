@@ -4,509 +4,510 @@
 
 import Foundation
 
-infix operator >>> : BitwiseShiftPrecedence
-
-func >>> (lhs: Int64, rhs: Int64) -> Int64 {
-    return Int64(bitPattern: UInt64(bitPattern: lhs) >> UInt64(rhs))
-}
-
-extension Int {
-    private static var EXP: [Int] = {
-        var table = [Int](repeating: 0, count: 256)
-        for i in 0..<8 {
-            table[i] = 1 << i
-        }
-        for i in 8..<256 {
-            table[i] = table[i - 4]
-                    ^ table[i - 5]
-                    ^ table[i - 6]
-                    ^ table[i - 8]
-        }
-        return table
-    }()
-
-    private static var LOG: [Int] = {
-        var table = [Int](repeating: 0, count: 256)
-        for i in 0..<255 {
-            table[EXP[i]] = i
-        }
-        return table
-    }()
-
-    func glog() -> Int? {
-        guard self >= 1 else {
-            return nil
-        }
-        return Int.LOG[self]
-    }
-
-    func gexp() -> Int {
-        var n = self
-        while n < 0 {
-            n += 255
-        }
-
-        while n >= 256 {
-            n -= 255
-        }
-
-        return Int.EXP[n]
-    }
-}
-
-struct QRBitBuffer {
-    private var buffer = [Int64]()
-    private(set) var length: Int = 0
-
-    subscript(index: Int) -> Bool {
-        get {
-            let buffIndex = Int(floor(Float(index) / 8))
-            return ((Int64(buffer[buffIndex]) >>> Int64(7 - index % 8)) & 1) == 1
-        }
-    }
-
-    mutating func put(num: Int, length: Int) {
-        for i in 0..<length {
-            let value = ((Int64(num) >>> Int64(length - i - 1)) & 1) == 1
-            put(bit: value ? 1 : 0)
-        }
-    }
-
-    mutating func put(bit: Int) {
-        let buffIndex = Int(floor(Float(self.length) / 8))
-        if buffer.count <= buffIndex {
-            buffer.append(0)
-        }
-        if bit != 0 {
-            buffer[buffIndex] |= Int64(0x80) >>> Int64(self.length % 8)
-        }
-        self.length += 1
-    }
-}
-
-struct QR8BitByte {
-    let data: String
-    let mode = QRMode.EightBit
-
-    var length: Int {
-        return data.count
-    }
-
-    func write(buffer: inout QRBitBuffer) {
-        data.map { Int($0.unicodeScalarCodePoint()) }
-                .forEach { buffer.put(num: $0, length: 8)}
-    }
-}
-
-enum QRMode {
-    case Number
-    case AlphaNum
-    case EightBit(String)
-    case Kanji
-
-    func getLengthInBits(type: Int) -> Int? {
-        switch type {
-        case 1..<10:
-            switch self {
-            case .Number: return 10
-            case .AlphaNum: return 9
-            case .EightBit, .Kanji: return 8
-            }
-        case 10..<27:
-            switch self {
-            case .Number: return 12
-            case .AlphaNum: return 11
-            case .EightBit: return 16
-            case .Kanji: return 10
-            }
-        case 27..<41:
-            switch self {
-            case .Number: return 14
-            case .AlphaNum: return 13
-            case .EightBit: return 16
-            case .Kanji: return 12
-            }
-        default:
-            return nil
-        }
-    }
-}
-
-extension Character  {
-    func unicodeScalarCodePoint() -> UInt32 {
-        let characterString = String(self)
-        let scalars = characterString.unicodeScalars
-        return scalars[scalars.startIndex].value
-    }
-}
-
-struct QRPolynomial {
-    private var num: [Int]
-
-    var length: Int {
-        return num.count
-    }
-
-    init(num: [Int], shift: Int) {
-        var offset = 0
-        while offset < num.count, num[offset] == 0 {
-            offset += 1
-        }
-        self.num = [Int](repeating: 0, count: num.count - offset + shift)
-        for i in 0..<(num.count - offset) {
-            self.num[i] = num[i + offset]
-        }
-    }
-
-    subscript(index: Int) -> Int {
-        get {
-            return num[index]
-        }
-    }
-
-    func multiply(_ e: QRPolynomial) -> QRPolynomial {
-        var num = [Int](repeating: 0, count: self.length - e.length - 1)
-        for i in 0..<self.length {
-            for j in 0..<e.length {
-                num[i + j] ^= (self[i].glog()! + e[j].glog()!).gexp()
-            }
-        }
-        return .init(num: num, shift: 0)
-    }
-
-    func mod(_ e: QRPolynomial) -> QRPolynomial {
-        guard self.length - e.length >= 0 else {
-            return self
-        }
-
-        var num = [Int](repeating: self.length, count: 0)
-        let ratio = self[0].glog()! - e[0].glog()!
-
-        for i in 0..<self.length {
-            num[i] = self[i]
+class QRCode {
+    static let PAD0 =  0xEC
+    static let PAD1 = 0x11
+    
+    var type: Int
+    var errorCorrectLevel: QRErrorCorrectLevel
+    var dataList = [QR8BitByte]()
+    private(set) var moduleCount = 0
+    var modules = [[Bool?]]()
+    var dataCache: [Int]?
+    
+    enum QRCodeError: CustomNSError {
+        static var errorDomain: String {
+            return "com.daubert.qrCode"
         }
         
-        for x in 0..<e.length {
-            num[x] ^= (e[x].glog()! + ratio).gexp()
+        case isDark(Int, Int)
+        
+        var errorCode: Int {
+            return -104
         }
-
-        return QRPolynomial(num: num, shift: 0).mod(e)
-    }
-    
-    static func errorCorrectPolynomial(by errorCorrectLength: Int) -> QRPolynomial {
-        var a = QRPolynomial(num: [1], shift: 0)
-        for i in 0..<errorCorrectLength {
-            a = a.multiply(QRPolynomial(num: [1, i.gexp()], shift: 0))
-        }
-        return a
-    }
-}
-
-struct QRRSBlock {
-    var totalCount: Int
-    var dataCount: Int
-}
-
-enum QRErrorCorrectLevel: Int {
-    case M = 0, L, H, Q
-    private static var RS_BLOCK: [[Int]] = {
-        return [
-            // L
-            // M
-            // Q
-            // H
-
-            // 1
-            [1, 26, 19],
-            [1, 26, 16],
-            [1, 26, 13],
-            [1, 26, 9],
-
-            // 2
-            [1, 44, 34],
-            [1, 44, 28],
-            [1, 44, 22],
-            [1, 44, 16],
-
-            // 3
-            [1, 70, 55],
-            [1, 70, 44],
-            [2, 35, 17],
-            [2, 35, 13],
-
-            // 4
-            [1, 100, 80],
-            [2, 50, 32],
-            [2, 50, 24],
-            [4, 25, 9],
-
-            // 5
-            [1, 134, 108],
-            [2, 67, 43],
-            [2, 33, 15, 2, 34, 16],
-            [2, 33, 11, 2, 34, 12],
-
-            // 6
-            [2, 86, 68],
-            [4, 43, 27],
-            [4, 43, 19],
-            [4, 43, 15],
-
-            // 7
-            [2, 98, 78],
-            [4, 49, 31],
-            [2, 32, 14, 4, 33, 15],
-            [4, 39, 13, 1, 40, 14],
-
-            // 8
-            [2, 121, 97],
-            [2, 60, 38, 2, 61, 39],
-            [4, 40, 18, 2, 41, 19],
-            [4, 40, 14, 2, 41, 15],
-
-            // 9
-            [2, 146, 116],
-            [3, 58, 36, 2, 59, 37],
-            [4, 36, 16, 4, 37, 17],
-            [4, 36, 12, 4, 37, 13],
-
-            // 10
-            [2, 86, 68, 2, 87, 69],
-            [4, 69, 43, 1, 70, 44],
-            [6, 43, 19, 2, 44, 20],
-            [6, 43, 15, 2, 44, 16],
-
-            // 11
-            [4, 101, 81],
-            [1, 80, 50, 4, 81, 51],
-            [4, 50, 22, 4, 51, 23],
-            [3, 36, 12, 8, 37, 13],
-
-            // 12
-            [2, 116, 92, 2, 117, 93],
-            [6, 58, 36, 2, 59, 37],
-            [4, 46, 20, 6, 47, 21],
-            [7, 42, 14, 4, 43, 15],
-
-            // 13
-            [4, 133, 107],
-            [8, 59, 37, 1, 60, 38],
-            [8, 44, 20, 4, 45, 21],
-            [12, 33, 11, 4, 34, 12],
-
-            // 14
-            [3, 145, 115, 1, 146, 116],
-            [4, 64, 40, 5, 65, 41],
-            [11, 36, 16, 5, 37, 17],
-            [11, 36, 12, 5, 37, 13],
-
-            // 15
-            [5, 109, 87, 1, 110, 88],
-            [5, 65, 41, 5, 66, 42],
-            [5, 54, 24, 7, 55, 25],
-            [11, 36, 12],
-
-            // 16
-            [5, 122, 98, 1, 123, 99],
-            [7, 73, 45, 3, 74, 46],
-            [15, 43, 19, 2, 44, 20],
-            [3, 45, 15, 13, 46, 16],
-
-            // 17
-            [1, 135, 107, 5, 136, 108],
-            [10, 74, 46, 1, 75, 47],
-            [1, 50, 22, 15, 51, 23],
-            [2, 42, 14, 17, 43, 15],
-
-            // 18
-            [5, 150, 120, 1, 151, 121],
-            [9, 69, 43, 4, 70, 44],
-            [17, 50, 22, 1, 51, 23],
-            [2, 42, 14, 19, 43, 15],
-
-            // 19
-            [3, 141, 113, 4, 142, 114],
-            [3, 70, 44, 11, 71, 45],
-            [17, 47, 21, 4, 48, 22],
-            [9, 39, 13, 16, 40, 14],
-
-            // 20
-            [3, 135, 107, 5, 136, 108],
-            [3, 67, 41, 13, 68, 42],
-            [15, 54, 24, 5, 55, 25],
-            [15, 43, 15, 10, 44, 16],
-
-            // 21
-            [4, 144, 116, 4, 145, 117],
-            [17, 68, 42],
-            [17, 50, 22, 6, 51, 23],
-            [19, 46, 16, 6, 47, 17],
-
-            // 22
-            [2, 139, 111, 7, 140, 112],
-            [17, 74, 46],
-            [7, 54, 24, 16, 55, 25],
-            [34, 37, 13],
-
-            // 23
-            [4, 151, 121, 5, 152, 122],
-            [4, 75, 47, 14, 76, 48],
-            [11, 54, 24, 14, 55, 25],
-            [16, 45, 15, 14, 46, 16],
-
-            // 24
-            [6, 147, 117, 4, 148, 118],
-            [6, 73, 45, 14, 74, 46],
-            [11, 54, 24, 16, 55, 25],
-            [30, 46, 16, 2, 47, 17],
-
-            // 25
-            [8, 132, 106, 4, 133, 107],
-            [8, 75, 47, 13, 76, 48],
-            [7, 54, 24, 22, 55, 25],
-            [22, 45, 15, 13, 46, 16],
-
-            // 26
-            [10, 142, 114, 2, 143, 115],
-            [19, 74, 46, 4, 75, 47],
-            [28, 50, 22, 6, 51, 23],
-            [33, 46, 16, 4, 47, 17],
-
-            // 27
-            [8, 152, 122, 4, 153, 123],
-            [22, 73, 45, 3, 74, 46],
-            [8, 53, 23, 26, 54, 24],
-            [12, 45, 15, 28, 46, 16],
-
-            // 28
-            [3, 147, 117, 10, 148, 118],
-            [3, 73, 45, 23, 74, 46],
-            [4, 54, 24, 31, 55, 25],
-            [11, 45, 15, 31, 46, 16],
-
-            // 29
-            [7, 146, 116, 7, 147, 117],
-            [21, 73, 45, 7, 74, 46],
-            [1, 53, 23, 37, 54, 24],
-            [19, 45, 15, 26, 46, 16],
-
-            // 30
-            [5, 145, 115, 10, 146, 116],
-            [19, 75, 47, 10, 76, 48],
-            [15, 54, 24, 25, 55, 25],
-            [23, 45, 15, 25, 46, 16],
-
-            // 31
-            [13, 145, 115, 3, 146, 116],
-            [2, 74, 46, 29, 75, 47],
-            [42, 54, 24, 1, 55, 25],
-            [23, 45, 15, 28, 46, 16],
-
-            // 32
-            [17, 145, 115],
-            [10, 74, 46, 23, 75, 47],
-            [10, 54, 24, 35, 55, 25],
-            [19, 45, 15, 35, 46, 16],
-
-            // 33
-            [17, 145, 115, 1, 146, 116],
-            [14, 74, 46, 21, 75, 47],
-            [29, 54, 24, 19, 55, 25],
-            [11, 45, 15, 46, 46, 16],
-
-            // 34
-            [13, 145, 115, 6, 146, 116],
-            [14, 74, 46, 23, 75, 47],
-            [44, 54, 24, 7, 55, 25],
-            [59, 46, 16, 1, 47, 17],
-
-            // 35
-            [12, 151, 121, 7, 152, 122],
-            [12, 75, 47, 26, 76, 48],
-            [39, 54, 24, 14, 55, 25],
-            [22, 45, 15, 41, 46, 16],
-
-            // 36
-            [6, 151, 121, 14, 152, 122],
-            [6, 75, 47, 34, 76, 48],
-            [46, 54, 24, 10, 55, 25],
-            [2, 45, 15, 64, 46, 16],
-
-            // 37
-            [17, 152, 122, 4, 153, 123],
-            [29, 74, 46, 14, 75, 47],
-            [49, 54, 24, 10, 55, 25],
-            [24, 45, 15, 46, 46, 16],
-
-            // 38
-            [4, 152, 122, 18, 153, 123],
-            [13, 74, 46, 32, 75, 47],
-            [48, 54, 24, 14, 55, 25],
-            [42, 45, 15, 32, 46, 16],
-
-            // 39
-            [20, 147, 117, 4, 148, 118],
-            [40, 75, 47, 7, 76, 48],
-            [43, 54, 24, 22, 55, 25],
-            [10, 45, 15, 67, 46, 16],
-
-            // 40
-            [19, 148, 118, 6, 149, 119],
-            [18, 75, 47, 31, 76, 48],
-            [34, 54, 24, 34, 55, 25],
-            [20, 45, 15, 61, 46, 16]
-        ]
-    }()
-
-    func rsBlockTable(type: Int) -> [Int] {
-        switch self {
-        case .L:
-            return QRErrorCorrectLevel.RS_BLOCK[(type - 1) * 4 + 0]
-        case .M:
-            return QRErrorCorrectLevel.RS_BLOCK[(type - 1) * 4 + 1]
-        case .Q:
-            return QRErrorCorrectLevel.RS_BLOCK[(type - 1) * 4 + 2]
-        case .H:
-            return QRErrorCorrectLevel.RS_BLOCK[(type - 1) * 4 + 3]
-        }
-    }
-
-    func rsBlocks(type: Int) -> [QRRSBlock] {
-        let rsBlock = rsBlockTable(type: type)
-
-        var list = [QRRSBlock]()
-
-        for i in 0..<rsBlock.count / 3 {
-            let count = rsBlock[i * 3 + 0]
-            let totalCount = rsBlock[i * 3 + 1]
-            let dataCount = rsBlock[i * 3 + 2]
-            for _ in 0..<count {
-                list.append(.init(totalCount: totalCount, dataCount: dataCount))
+        
+        var errorUserInfo: [String : Any] {
+            switch self {
+            case .isDark(let row, let col):
+                return [NSLocalizedDescriptionKey: "row: \(row) col: \(col)"]
             }
         }
-        return list
+    }
+    
+    init(type: Int, errorCorrectLevel: QRErrorCorrectLevel) {
+        self.type = type
+        self.errorCorrectLevel = errorCorrectLevel
+    }
+    
+    func add(data: String) {
+        dataList.append(QR8BitByte(data: data))
+        dataCache = nil
+    }
+    
+    func isDark(row: Int, col: Int) throws -> Bool? {
+        guard row >= 0, moduleCount > row, col >= 0, moduleCount > col else {
+            throw QRCodeError.isDark(col, row)
+        }
+        return modules[row][col]
+    }
+    
+    func make() throws {
+        // Calculate automatically typeNumber if provided is < 1
+        guard type < 1 else {
+            try makeImpl(test: false, maskPattern: getBestMaskPattern())
+            return
+        }
+        
+        var typeNum = 1
+        while typeNum < 40 {
+            let rsBlocks = errorCorrectLevel.rsBlocks(type: typeNum)
+            var buffer = QRBitBuffer()
+            
+            var totalDataCount = 0
+            rsBlocks.forEach { totalDataCount += $0.dataCount }
+            
+            for data in dataList {
+                buffer.put(num: data.mode.value, length: 4)
+                buffer.put(num: data.length, length: try data.mode.getLengthInBits(type: typeNum))
+                data.write(buffer: &buffer)
+            }
+            
+            if buffer.length <= totalDataCount * 8 {
+                break
+            }
+            
+            typeNum += 1
+        }
+        self.type = typeNum
+        try makeImpl(test: false, maskPattern: getBestMaskPattern())
     }
 }
 
-enum QRMaskPattern: Int {
-    case PATTERN000 = 0, PATTERN001, PATTERN010, PATTERN011
-    case PATTERN100, PATTERN101, PATTERN110, PATTERN111
-
-    func getMask(_ i: Int, _ j: Int) -> Bool {
-        switch self {
-        case .PATTERN000: return (i + j) % 2 == 0
-        case .PATTERN001: return i % 2  == 0
-        case .PATTERN010: return j % 3 == 0
-        case .PATTERN011: return (i + j) % 3 == 0
-        case .PATTERN100:
-            return (Int(floor(Float(i / 2))) + Int(floor(Float(j / 3)))) % 2 == 0
-        case .PATTERN101: return (i * j) % 2 + (i * j) % 3 == 0
-        case .PATTERN110: return ((i * j) % 2 + (i * j) % 3) % 2 == 0
-        case .PATTERN111: return ((i * j) % 3 + (i + j) % 2) % 2 == 0
+fileprivate extension QRCode {
+    func setupPositionProbePattern(row: Int, col: Int) {
+        
+        for r in -1...7 where row + r > -1 && moduleCount > row + r {
+            for c in -1...7 where col + c > -1 && moduleCount > col + c {
+                var ret = (0 <= r && r <= 6 && (c == 0 || c == 6))
+                if !ret {
+                    ret = ret || (0 <= c && c <= 6 && (r == 0 || r == 6))
+                }
+                if !ret {
+                    ret = ret || (2 <= r && r <= 4 && 2 <= c && c <= 4)
+                }
+                modules[row+r][col+c] = ret
+            }
+        }
+    }
+    
+    func setupPositionAdjustPattern() {
+        let pos = self.type.patterPosition()
+        for i in 0..<pos.count {
+            for j in 0..<pos.count {
+                
+                let row = pos[i]
+                let col = pos[j]
+                
+                guard modules[row][col] != nil else {
+                    continue
+                }
+                
+                for r in -2...2 {
+                    for c in -2...2 {
+                        var ret = abs(r) == 2
+                        if !ret {
+                            ret = ret || abs(c) == 2
+                        }
+                        if !ret {
+                            ret = ret || (r == 0 && c == 0)
+                        }
+                        modules[row+r][col+c] = ret
+                    }
+                }
+            }
+        }
+    }
+    
+    func setupTimingPattern() {
+        for r in 8..<moduleCount - 8 where modules[r][6] != nil {
+            modules[r][6] = r % 2 == 0
+        }
+        
+        for c in 8..<moduleCount - 8 where modules[c][6] != nil {
+            modules[6][c] = c % 2 == 0
         }
     }
 }
 
-struct QRCode {
+fileprivate extension QRCode {
+    func setupTypeInfo(test: Bool, maskPattern: QRMaskPattern) {
+        let data = self.errorCorrectLevel.rawValue << 3 | maskPattern.rawValue
+        let bits = data.bchTypeInfo()
+        
+        var mod = false
+        
+        // vertical
+        for v in 0..<15 {
+            mod = (!test && ((bits >> v) & 1) == 1)
+            if v < 6 {
+                modules[v][8] = mod
+            } else if v < 8 {
+                modules[v + 1][8] = mod
+            } else {
+                modules[moduleCount - 15 + v][8] = mod
+            }
+        }
+        
+        // horizontal
+        for h in 0..<15 {
+            mod = (!test && ((bits >> h) & 1) == 1)
+            if h < 8 {
+                modules[8][moduleCount - h - 1] = mod
+            } else if h < 9 {
+                modules[8][15 - h - 1 + 1] = mod
+            } else {
+                modules[8][15 - h - 1] = mod
+            }
+        }
+        
+        // fixed module
+        modules[moduleCount - 8][8] = !test
+    }
+    
+    func setupTypeNumber(test: Bool) {
+        let bits = type.bchTypeNumber()
+        var mod = false
+        
+        for i in 0..<18 {
+            mod = (!test && ((bits >> i) & 1) == 1)
+            modules[Int(floor(Float(i / 3)))][i % 3 + moduleCount - 8 - 3] = mod
+        }
+        
+        for x in 0..<18 {
+            mod = (!test && ((bits >> x) & 1) == 1)
+            modules[x % 3 + moduleCount - 8 - 3][Int(floor(Float(x / 3)))] = mod
+        }
+    }
+    
+    func getBestMaskPattern() throws -> QRMaskPattern {
+        var minLostPoint = 0
+        var bestMatchPattern = QRMaskPattern.PATTERN000
+        
+        for pattern in QRMaskPattern.allCases {
+            
+            try makeImpl(test: true, maskPattern: pattern)
+            let lostPoint = try getLostPoint()
+            
+            if pattern == .PATTERN000 || minLostPoint > lostPoint {
+                minLostPoint = lostPoint
+                bestMatchPattern = pattern
+            }
+        }
+        
+        return bestMatchPattern
+    }
+    
+    func makeImpl(test: Bool, maskPattern: QRMaskPattern) throws {
+        moduleCount = type * 4 + 17
+        modules = [[Bool?]](repeating: [Bool?](), count: moduleCount)
+        
+        for row in 0..<moduleCount {
+            modules[row] = [Bool?](repeating: nil, count: moduleCount)
+        }
+        
+        setupPositionProbePattern(row: 0, col: 0)
+        setupPositionProbePattern(row: moduleCount - 7, col: 0)
+        setupPositionProbePattern(row: 0, col: moduleCount - 7)
+        setupPositionAdjustPattern()
+        setupTypeInfo(test: test, maskPattern: maskPattern)
+        
+        if type >= 7 {
+            setupTypeNumber(test: test)
+        }
+        
+        if dataCache == nil {
+            dataCache = try QRCode.createData(type: type, errorCorrecLevel: errorCorrectLevel, dataList: dataList)
+        }
+        
+        map(data: dataCache!, maskPattern: maskPattern)
+    }
+    
+    func map(data: [Int], maskPattern: QRMaskPattern) {
+        var inc = -1,
+        row = moduleCount - 1,
+        bitIndex = 7,
+        byteIndex = 0
+        
+        var col = moduleCount - 1
+        while col > 0 {
+            if col == 6 {
+                col -= 1
+            }
+            
+            while true {
+                for c in 0..<2 where modules[row][col-c] == nil {
+                    var dark = false
+                    
+                    if byteIndex < data.count {
+                        dark = (Int(Int64(data[byteIndex]) >>> Int64(bitIndex)) & 1) == 1
+                    }
+                    
+                    if maskPattern.getMask(row, col - c) {
+                        dark.toggle()
+                    }
+                    
+                    modules[row][col-c] = dark
+                    bitIndex -= 1
+                    
+                    if bitIndex == -1 {
+                        byteIndex += 1
+                        bitIndex = 7
+                    }
+                }
+                
+                row += inc
+                if row < 0 || moduleCount <= row {
+                    row -= inc
+                    inc = -inc
+                    break
+                }
+            }
+            
+            col -= 2
+        }
+    }
+    
+    func getLostPoint() throws -> Int {
+        var lostPoint = 0
+        
+        // LEVEL1
+        for row in 0..<moduleCount {
+            for col in 0..<moduleCount {
+                var sameCount = 0
+                let dark = try isDark(row: row, col: col)
+                for r in -1...1 where row + r >= 0 && moduleCount > row + r {
+                    for c in -1...1 where col + c >= 0 && moduleCount > col + c {
+                        guard r != 0 || c != 0 else {
+                            continue
+                        }
+        
+                        if dark == (try isDark(row: row + r, col: col + c)) {
+                            sameCount += 1
+                        }
+                    }
+                }
+                
+                if sameCount > 5 {
+                    lostPoint += 3 + sameCount - 5
+                }
+            }
+        }
+        
+        // LEVEL2
+        for row in 0..<moduleCount - 1 {
+            for col in 0..<moduleCount - 1 {
+                var count = 0
+                if try isDark(row: row, col: col) == true {
+                    count += 1
+                }
+                
+                if try isDark(row: row + 1, col: col) == true {
+                    count += 1
+                }
+                
+                if try isDark(row: row, col: col + 1) == true {
+                    count += 1
+                }
+                
+                if try isDark(row: row + 1, col: col + 1) == true {
+                    count += 1
+                }
+                
+                if count == 0 || count == 4 {
+                    lostPoint += 3
+                }
+            }
+        }
+        
+        // LEVEL3
+        for row in 0..<moduleCount {
+            for col in 0..<moduleCount - 6 {
+                var ret = try isDark(row: row, col: col)!
+                
+                if ret {
+                    let v = try isDark(row: row + 1, col: col)
+                    ret = ret && !v!
+                }
+                
+                if ret {
+                    let v = try isDark(row: row + 2, col: col)
+                    ret = ret && v!
+                }
+                
+                if ret {
+                    let v = try isDark(row: row + 3, col: col)
+                    ret = ret && v!
+                }
+                
+                if ret {
+                    let v = try isDark(row: row + 4, col: col)
+                    ret = ret && v!
+                }
+                
+                if ret {
+                    let v = try isDark(row: row + 5, col: col)
+                    ret = ret && !v!
+                }
+                
+                if ret {
+                    let v = try isDark(row: row + 6, col: col)
+                    ret = ret && v!
+                }
+                
+                if ret {
+                    lostPoint += 40
+                }
+            }
+        }
+        
+        // LEVEL4
+        var darkCount = 0
+        for col in 0..<moduleCount {
+            for row in 0..<moduleCount where try isDark(row: row, col: col) == true {
+                darkCount += 1
+            }
+        }
+        
+        let ratio = abs(Float(100 * darkCount) / Float(moduleCount) / Float(moduleCount) - 50) / 5
+        
+        lostPoint += Int(ratio) * 10
+        
+        return lostPoint
+    }
+}
 
+fileprivate extension QRCode {
+    
+    enum QRCreateDataError: CustomNSError {
+        static var errorDomain: String {
+            return "com.daubert.qrCode.createData"
+        }
+        
+        case createData(Int, Int)
+        
+        var errorCode: Int {
+            return -101
+        }
+        
+        var errorUserInfo: [String : Any] {
+            switch self {
+            case .createData(let length, let totalDataCount):
+                return [NSLocalizedDescriptionKey: "code length overflow. (\(length) > \(totalDataCount * 8))"]
+            }
+        }
+    }
+    
+    class func createData(type: Int, errorCorrecLevel: QRErrorCorrectLevel, dataList: [QR8BitByte]) throws -> [Int] {
+        let rsBlocks = errorCorrecLevel.rsBlocks(type: type)
+        var buffer = QRBitBuffer()
+        
+        for data in dataList {
+            buffer.put(num: data.mode.value, length: 4)
+            buffer.put(num: data.length, length: try data.mode.getLengthInBits(type: type))
+            data.write(buffer: &buffer)
+        }
+    
+        // calc num max data.
+        var totalDataCount = 0
+        rsBlocks.forEach { totalDataCount += $0.dataCount }
+        
+        guard buffer.length <= totalDataCount * 8 else {
+            throw QRCreateDataError.createData(buffer.length, totalDataCount)
+        }
+        
+        // end code
+        if buffer.length + 4 <= totalDataCount * 8 {
+            buffer.put(num: 0, length: 4)
+        }
+        
+        // padding
+        while buffer.length % 8 != 0 {
+            buffer.put(bit: false)
+        }
+        
+        // padding
+        while true {
+            guard buffer.length < totalDataCount * 8 else {
+                break
+            }
+            
+            buffer.put(num: QRCode.PAD0, length: 8)
+            
+            guard buffer.length < totalDataCount * 8 else {
+                break
+            }
+            
+            buffer.put(num: QRCode.PAD1, length: 8)
+        }
+        
+        return try createBytes(buffer: buffer, rsBlocks: rsBlocks)
+    }
+    
+    class func createBytes(buffer: QRBitBuffer, rsBlocks:[QRRSBlock]) throws -> [Int] {
+        var offset = 0
+        
+        var maxDcCount = 0
+        var maxEcCount = 0
+        
+        var dcdata = [[Int]](repeating: [Int](), count: rsBlocks.count)
+        var ecdata = [[Int]](repeating: [Int](), count: rsBlocks.count)
+        
+        for r in 0..<rsBlocks.count {
+            let dcCount = rsBlocks[r].dataCount
+            let ecCount = rsBlocks[r].totalCount - dcCount
+            
+            maxDcCount = max(maxDcCount, dcCount)
+            maxEcCount = max(maxEcCount, ecCount)
+            
+            dcdata[r] = [Int](repeating: 0, count: dcCount)
+            for i in 0..<dcdata[r].count {
+                dcdata[r][i] = 0xff & Int(buffer.buffer[i + offset])
+            }
+            offset += dcCount
+            
+            let rsPoly = try QRPolynomial.errorCorrectPolynomial(by: ecCount)
+            let rawPoly = QRPolynomial(num: dcdata[r], shift: rsPoly.length - 1)
+            
+            let modPoly = try rawPoly.mod(rsPoly)
+            ecdata[r] = [Int](repeating: 0, count: rsPoly.length - 1)
+            for x in 0..<ecdata[r].count {
+                let modIndex = x + modPoly.length - ecdata[r].count
+                ecdata[r][x] = modIndex >= 0 ? modPoly[modIndex] : 0
+            }
+        }
+        
+        var totalCodeCount = 0
+        for y in 0..<rsBlocks.count {
+            totalCodeCount += rsBlocks[y].totalCount
+        }
+        
+        var data = [Int](repeating: 0, count: totalCodeCount)
+        var index = 0
+        
+        for z in 0..<maxDcCount {
+            for s in 0..<rsBlocks.count where z < dcdata[s].count {
+                data[index] = dcdata[s][z]
+                index += 1
+            }
+        }
+        
+        for xx in 0..<maxEcCount {
+            for t in 0..<rsBlocks.count where xx < ecdata[t].count {
+                data[index] = ecdata[t][xx]
+                index += 1
+            }
+        }
+        
+        return data
+    }
 }
