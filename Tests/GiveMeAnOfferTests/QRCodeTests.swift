@@ -12,7 +12,7 @@ final class QRCodeTests: XCTestCase {
 
     func testInput() {
         do {
-            print(try "https://www.baidu.com".generateQR(isSmall: false))
+            print(try "https://www.baidu.com".generateQR())
         } catch {
             print(error.localizedDescription)
         }

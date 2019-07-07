@@ -6,6 +6,9 @@
 //
 
 import Foundation
+#if os(macOS)
+import AppKit
+#endif
 
 infix operator >>> : BitwiseShiftPrecedence
 
@@ -16,7 +19,6 @@ func >>> (lhs: Int64, rhs: Int64) -> Int64 {
 extension Int {
     
     enum QRMathError: CustomNSError {
-        
         static var errorDomain: String {
             return "com.daubert.qrCode.qrmath"
         }
@@ -35,7 +37,6 @@ extension Int {
                 return [NSLocalizedDescriptionKey: "glog(\(n))"]
             }
         }
-        
     }
     
     private static var EXP: [Int] = {
@@ -211,8 +212,9 @@ enum QRPlatte: String {
 }
 
 enum QRBlockColor: String {
-    case black = "\033[40m  \033[0m"
-    case white = "\033[47m  \033[0m"
+    
+    case black = "\u{001B}[0;40m  \u{001B}[;m"
+    case white = "\u{001B}[0;47m  \u{001B}[;m"
     
     func fill(_ length: Int) -> [String] {
         return [String](repeating: rawValue, count: length)
@@ -225,13 +227,63 @@ enum QRBlockColor: String {
 
 extension String {
     
-    public func generateQR(isSmall: Bool, errorCorrectLevel: QRErrorCorrectLevel = .L) throws -> String {
+    enum QRCodeGenerateError: Error {
+        case ciFilterError
+        case generateImageError
+        case generateCGImageError
+        case failToConverToData
+    }
+    
+    public func generateQR(isSmall: Bool = false, errorCorrectLevel: QRErrorCorrectLevel = .L) throws -> String {
+        var output = ""
+        #if os(macOS)
+        guard let filter = CIFilter(name: "CIQRCodeGenerator") else {
+            throw QRCodeGenerateError.ciFilterError
+        }
+        filter.setDefaults()
+        guard let data = data(using: .utf8) else {
+            throw QRCodeGenerateError.failToConverToData
+        }
+        filter.setValue(data, forKey: "inputMessage")
         
+        var outputImg = filter.outputImage
+        let colorFilter = CIFilter(name: "CIFalseColor")
+        colorFilter?.setDefaults()
+        colorFilter?.setValue(outputImg, forKey: "inputImage")
+        colorFilter?.setValue(CIColor(color: .white), forKey: "inputColor0")
+        colorFilter?.setValue(CIColor(color: .black), forKey: "inputColor1")
+        outputImg = colorFilter?.outputImage
+        
+        guard let ciImage = outputImg else {
+            throw QRCodeGenerateError.generateImageError
+        }
+        
+        let context = CIContext()
+        guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else {
+            throw QRCodeGenerateError.generateCGImageError
+        }
+        
+        let bmpImgRef = NSBitmapImageRep(cgImage: cgImage)
+        let w = bmpImgRef.pixelsWide
+        let h = bmpImgRef.pixelsHigh
+        let blackColor = NSColor.black.usingColorSpace(.genericRGB)
+        for x in 0..<w {
+            for y in 0..<h {
+                if let color = bmpImgRef.colorAt(x: x, y: y) {
+                    if color.usingColorSpace(.genericRGB) == blackColor {
+                        output += QRBlockColor.white.rawValue
+                    } else {
+                        output += QRBlockColor.black.rawValue
+                    }
+                }
+            }
+            output += "\n"
+        }
+        #else
         let qrCode = QRCode(type: -1, errorCorrectLevel: errorCorrectLevel)
         qrCode.add(data: self)
         try qrCode.make()
         
-        var output = ""
         if isSmall {
             let BLACK = true,
             WHITE = false
@@ -251,6 +303,7 @@ extension String {
             
             for row in stride(from: 0, to: moduleCount, by: 2) {
                 output += QRPlatte.WHITE_ALL.rawValue
+                
                 for col in 0..<moduleCount {
                     if moduleData[row][col] == WHITE, moduleData[row+1][col] == WHITE {
                         output += QRPlatte.WHITE_ALL.rawValue
@@ -278,7 +331,7 @@ extension String {
             }
             output += border
         }
-
+        #endif
         return output
     }
 }

@@ -46,7 +46,7 @@ class QRCode {
     
     func isDark(row: Int, col: Int) throws -> Bool? {
         guard row >= 0, moduleCount > row, col >= 0, moduleCount > col else {
-            throw QRCodeError.isDark(col, row)
+            throw QRCodeError.isDark(row, col)
         }
         return modules[row][col]
     }
@@ -238,6 +238,7 @@ fileprivate extension QRCode {
         byteIndex = 0
         
         var col = moduleCount - 1
+        
         while col > 0 {
             if col == 6 {
                 col -= 1

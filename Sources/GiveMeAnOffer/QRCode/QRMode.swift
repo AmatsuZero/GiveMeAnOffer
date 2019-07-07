@@ -31,7 +31,7 @@ struct QRBitBuffer {
             buffer.append(0)
         }
         if bit {
-            buffer[buffIndex] |= Int64(0x80) >>> Int64(self.length % 8)
+            buffer[buffIndex] |= (Int64(0x80) >>> Int64(self.length % 8))
         }
         self.length += 1
     }
@@ -52,7 +52,7 @@ struct QR8BitByte {
     
     func write(buffer: inout QRBitBuffer) {
         data.map { Int($0.unicodeScalarCodePoint()) }
-            .forEach { buffer.put(num: $0, length: 8)}
+            .forEach { buffer.put(num: $0, length: 8) }
     }
 }
 
