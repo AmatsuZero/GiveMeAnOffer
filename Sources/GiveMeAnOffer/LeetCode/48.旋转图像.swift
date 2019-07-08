@@ -58,7 +58,7 @@ public extension Array where Element == [Int] {
             return
         }
         
-        let n = self.count
+        let n = self.count 
         //旋转次数
         let count = n * n / 4
         
