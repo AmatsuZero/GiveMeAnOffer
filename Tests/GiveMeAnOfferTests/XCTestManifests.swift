@@ -37,7 +37,8 @@ public func allTests() -> [XCTestCaseEntry] {
         testCase(MergeWithSortedArrayTests.allTests),
         testCase(QRCodeTests.allTests),
         testCase(RotateTests.allTests),
-        testCase(MinStackTests.allTests)
+        testCase(MinStackTests.allTests),
+        testCase(SumRangeTests.allTests)
     ]
 }
 #endif
