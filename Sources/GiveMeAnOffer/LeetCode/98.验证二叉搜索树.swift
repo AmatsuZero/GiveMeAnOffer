@@ -48,7 +48,7 @@ public extension TreeNode where T: Comparable {
 /// https://github.com/raywenderlich/swift-algorithm-club/blob/master/Binary%20Search%20Tree/README.markdown
 public class BinarySearchTree<T: Comparable>: TreeNode<T> {
   
-    private(set) public var parent: BinarySearchTree?
+    weak private(set) public var parent: BinarySearchTree?
     
     public convenience init(array: [T]) {
         precondition(!array.isEmpty)
@@ -56,6 +56,16 @@ public class BinarySearchTree<T: Comparable>: TreeNode<T> {
         for v in array.dropFirst() {
             insert(value: v)
         }
+    }
+    
+    public func depth() -> Int {
+        var node = self
+        var edges = 0
+        while let parent = node.parent {
+            node = parent
+            edges += 1
+        }
+        return edges
     }
     
     public func insert(value: T) {
@@ -96,7 +106,7 @@ public class BinarySearchTree<T: Comparable>: TreeNode<T> {
     
     @discardableResult public func remove() -> BinarySearchTree? {
         let replacement: BinarySearchTree?
-        
+       
         // Replacement for current node can be either biggest one on the left or
         // smallest one on the right, whichever is not nil
         if let right = right as? BinarySearchTree {

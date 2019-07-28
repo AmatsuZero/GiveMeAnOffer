@@ -6,11 +6,15 @@ import Foundation
 
 public class TreeNode<T> {
     
-    public var val: T
+    public var val: T!
     public var left: TreeNode?
     public var right: TreeNode?
     
-    public init(_ val: T) {
+    public var isLeaf: Bool {
+        return left == nil && right == nil
+    }
+    
+    public init(_ val: T!) {
         self.val = val
         self.left = nil
         self.right = nil
@@ -34,6 +38,24 @@ extension TreeNode {
             }
         }
     }
+    
+    public func traverseInOrder(process: (T) -> Void) {
+        left?.traverseInOrder(process: process)
+        process(val)
+        right?.traverseInOrder(process: process)
+    }
+    
+    public func traversePreOrder(process: (T) -> Void) {
+        process(val)
+        left?.traversePreOrder(process: process)
+        right?.traversePreOrder(process: process)
+    }
+    
+    public func traversePostOrder(process: (T) -> Void) {
+        left?.traversePostOrder(process: process)
+        right?.traversePostOrder(process: process)
+        process(val)
+    }
 }
 
 extension TreeNode: CustomStringConvertible {
@@ -42,7 +64,7 @@ extension TreeNode: CustomStringConvertible {
         if let left = left {
             s += "(\(left.description)) <- "
         }
-        s += "\(val)"
+        s += val != nil ? "\(val!)" : "Empty"
         if let right = right {
             s += " -> (\(right.description))"
         }
@@ -69,9 +91,6 @@ extension TreeNode {
 }
 
 extension TreeNode {
-    public var isLeaf: Bool {
-        return left == nil && right == nil
-    }
     
     public var hasLeftChild: Bool {
         return left != nil

@@ -40,7 +40,8 @@ public func allTests() -> [XCTestCaseEntry] {
         testCase(MinStackTests.allTests),
         testCase(SumRangeTests.allTests),
         testCase(ConstructRectangleTests.allTests),
-        testCase(LicenseKeyFormattingTests.allTests)
+        testCase(LicenseKeyFormattingTests.allTests),
+        testCast(BinarySearchTreeTests.allTests)
     ]
 }
 #endif
