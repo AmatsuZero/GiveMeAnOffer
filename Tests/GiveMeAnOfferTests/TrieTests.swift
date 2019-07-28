@@ -8,6 +8,8 @@
 import XCTest
 @testable import GiveMeAnOffer
 
+fileprivate let materialURL = "https://raw.githubusercontent.com/raywenderlich/swift-algorithm-club/master/Trie/Trie/Trie/dictionary.txt"
+
 class TrieTests: XCTestCase {
 
     var wordArray: [String]?
@@ -36,7 +38,7 @@ class TrieTests: XCTestCase {
       
         var data: String?
         do {
-            data = try String(contentsOf: URL(string: "https://raw.githubusercontent.com/raywenderlich/swift-algorithm-club/master/Trie/Trie/Trie/dictionary.txt")!, encoding: .utf8)
+            data = try String(contentsOf: URL(string: materialURL)!, encoding: .utf8)
         } catch  {
             XCTAssertNil(error)
         }
@@ -160,7 +162,7 @@ class TrieTests: XCTestCase {
         let resourcePath = NSTemporaryDirectory() as NSString
         let fileName = "dictionary-archive"
         let filePath = resourcePath.appendingPathComponent(fileName)
-        NSKeyedArchiver.archiveRootObject(trie, toFile: filePath)
+        _ = NSKeyedArchiver.archiveRootObject(trie, toFile: filePath)
         let trieCopy = NSKeyedUnarchiver.unarchiveObject(withFile: filePath) as? Trie
         XCTAssertEqual(trieCopy?.count, trie.count)
     }
@@ -192,7 +194,7 @@ class TrieTests: XCTestCase {
         ("创建", testCreate),
         ("插入", testInsert),
         ("移除", testRemove),
-        ("words属性", testWords),
+        ("Words属性", testWords),
         ("插入性能", testInsertPerformance),
         ("查找性能", testContainsPerformance),
         ("计算属性Words性能", testWordsPerformance),
