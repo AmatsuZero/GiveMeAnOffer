@@ -60,7 +60,7 @@ public extension TreeNode {
     var height: Int {
         let left = self.left?.height ?? 0
         let right = self.right?.height ?? 0
-        return max(left + 1, right + 1)
+        return Swift.max(left + 1, right + 1)
     }
 
     func isBalanced() -> Bool {
