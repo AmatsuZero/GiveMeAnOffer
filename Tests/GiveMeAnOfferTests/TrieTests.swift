@@ -37,7 +37,7 @@ class TrieTests: XCTestCase {
         var data: String?
         do {
             data = try String(contentsOf: URL(string: "https://raw.githubusercontent.com/raywenderlich/swift-algorithm-club/master/Trie/Trie/Trie/dictionary.txt")!, encoding: .utf8)
-        } catch let error as NSError {
+        } catch  {
             XCTAssertNil(error)
         }
         XCTAssertNotNil(data)
@@ -188,4 +188,16 @@ class TrieTests: XCTestCase {
         XCTAssertEqual(wordsUpperCase.sorted(), ["team", "test"])
     }
 
+    static var allTests = [
+        ("创建", testCreate),
+        ("插入", testInsert),
+        ("移除", testRemove),
+        ("words属性", testWords),
+        ("插入性能", testInsertPerformance),
+        ("查找性能", testContainsPerformance),
+        ("计算属性Words性能", testWordsPerformance),
+        ("移除性能", testRemovePerformance),
+        ("归档解档", testArchiveAndUnarchive),
+        ("前缀查找", testFindWordsWithPrefix)
+    ]
 }

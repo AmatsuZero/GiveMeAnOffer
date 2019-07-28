@@ -41,7 +41,8 @@ public func allTests() -> [XCTestCaseEntry] {
         testCase(SumRangeTests.allTests),
         testCase(ConstructRectangleTests.allTests),
         testCase(LicenseKeyFormattingTests.allTests),
-        testCast(BinarySearchTreeTests.allTests)
+        testCase(BinarySearchTreeTests.allTests),
+        testCase(TrieTests.allTests)
     ]
 }
 #endif
