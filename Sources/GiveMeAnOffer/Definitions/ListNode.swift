@@ -4,7 +4,7 @@
 
 import Foundation
 
-public class ListNode<T: Comparable> {
+public class ListNode<T> {
     public var val: T
     public var next: ListNode<T>? = nil
 
@@ -34,7 +34,7 @@ public class ListNode<T: Comparable> {
     }
 }
 
-extension ListNode: Equatable {
+extension ListNode: Equatable where T: Equatable {
     public static func == (lhs: ListNode<T>, rhs: ListNode<T>) -> Bool {
         return lhs.toArray() == rhs.toArray()
     }

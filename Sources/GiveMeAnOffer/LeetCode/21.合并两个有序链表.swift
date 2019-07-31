@@ -28,7 +28,7 @@
 
 import Foundation
 
-extension ListNode {
+extension ListNode where T: Comparable {
 
     public static func + (lhs: ListNode<T>, rhs: ListNode<T>) -> ListNode<T>? {
         return merge(left: lhs, right: rhs)

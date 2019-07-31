@@ -4,7 +4,7 @@
 
 import Foundation
 
-public extension ListNode {
+public extension ListNode where T: Equatable {
 
     static func isPalindrome(_ head: ListNode?) -> Bool {
         return head?.isPalindrome() ?? true
