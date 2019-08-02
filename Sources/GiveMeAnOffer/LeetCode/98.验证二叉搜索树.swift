@@ -148,6 +148,27 @@ extension BinarySearchTree {
         return parent == nil
     }
     
+    public func height() -> Int {
+        guard !isRoot else {
+            return maxDepth()
+        }
+        if isLeaf {
+            return 0
+        } else {
+            var leftHeight = 0
+            if let left = self.left as? BinarySearchTree {
+                leftHeight += left.height()
+            }
+            var rightHeight = 0
+            if let right = self.right as? BinarySearchTree {
+                rightHeight += right.height()
+            }
+            return 1 + Swift.max(leftHeight, rightHeight)
+        }
+    }
+    
+    
+    
     public var isLeftChild: Bool {
         return parent?.left === self
     }

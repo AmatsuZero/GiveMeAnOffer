@@ -57,17 +57,9 @@ import Foundation
 // 两层递归，第一层递归求二叉树的左右子树是否为高度平衡树，第二层求二叉树的高度。
 public extension TreeNode {
 
-    func height() -> Int {
-        if isLeaf {
-            return 0
-        } else {
-            return 1 + max(left?.height() ?? 0, right?.height() ?? 0)
-        }
-    }
-
     func isBalanced() -> Bool {
-        guard abs((left?.height() ?? 0) - (right?.height() ?? 0)) <= 1 else {
-            return  false
+        guard abs((left?.maxDepth() ?? 0) - (right?.maxDepth() ?? 0)) <= 1 else {
+            return false
         }
         return (left?.isBalanced() ?? true) && (right?.isBalanced() ?? true)
     }
