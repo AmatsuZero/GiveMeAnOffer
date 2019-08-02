@@ -30,19 +30,51 @@ import Foundation
 
 extension TreeNode where T: Equatable {
     
+    public convenience init?(preorder: [T], inorder: [T]) {
+        self.init(preorder: preorder, pStart:0, pEnd: preorder.count,
+                  inorder: inorder, iStart: 0, iEnd: inorder.count)
+    }
+    
+    private convenience init?(preorder: [T], pStart: Int, pEnd: Int,
+                              inorder: [T], iStart: Int, iEnd: Int) {
+        guard pStart != pEnd else {
+            return nil
+        }
+        
+        // 拿到节点的值
+        let rootVal = preorder[pStart]
+        // 创建节点
+        self.init(rootVal)
+        //在中序遍历中找到根节点的位置
+        var i_root_index = 0
+        for i in iStart..<iEnd where rootVal == inorder[i] {
+            i_root_index = i
+            break
+        }
+        // 确定子树的节点数量
+        let leftNum = i_root_index - iStart
+        //递归的构造左子树
+        self.left = TreeNode<T>(preorder: preorder, pStart: pStart + 1, pEnd: pStart + leftNum + 1,
+                                inorder: inorder, iStart: iStart, iEnd: i_root_index)
+        //递归的构造右子树
+        self.right = TreeNode<T>(preorder: preorder, pStart: pStart + leftNum + 1, pEnd: pEnd,
+                                 inorder: inorder, iStart: i_root_index + 1, iEnd: iEnd)
+        
+    }
+    
     public class func buildTree(_ preorder: [T], _ inorder: [T]) -> TreeNode? {
-        return buildTreeHelper(preoder: preorder, pStart: 0, pEnd: preorder.count,
+        return buildTreeHelper(preorder: preorder, pStart: 0, pEnd: preorder.count,
                                inorder: inorder, iStart: 0, iEnd: inorder.count)
     }
     
-    private class func buildTreeHelper(preoder: [T], pStart: Int, pEnd: Int,
+    private class func buildTreeHelper(preorder: [T], pStart: Int, pEnd: Int,
                                        inorder: [T], iStart: Int, iEnd: Int) -> TreeNode? {
         guard pStart != pEnd else {
             return nil
         }
         
         // 拿到节点的值
-        let rootVal = preoder[pStart]
+        let rootVal = preorder[pStart]
         // 创建节点
         let root = TreeNode(rootVal)
         //在中序遍历中找到根节点的位置
@@ -54,10 +86,10 @@ extension TreeNode where T: Equatable {
         // 确定子树的节点数量
         let leftNum = i_root_index - iStart
         //递归的构造左子树
-        root.left = buildTreeHelper(preoder: preoder, pStart: pStart + 1, pEnd: pStart + leftNum + 1,
+        root.left = buildTreeHelper(preorder: preorder, pStart: pStart + 1, pEnd: pStart + leftNum + 1,
                                     inorder: inorder, iStart: iStart, iEnd: i_root_index)
         //递归的构造右子树
-        root.right = buildTreeHelper(preoder: preoder, pStart: pStart + leftNum + 1, pEnd: pEnd,
+        root.right = buildTreeHelper(preorder: preorder, pStart: pStart + leftNum + 1, pEnd: pEnd,
                                      inorder: inorder, iStart: i_root_index + 1, iEnd: iEnd)
         return root
     }

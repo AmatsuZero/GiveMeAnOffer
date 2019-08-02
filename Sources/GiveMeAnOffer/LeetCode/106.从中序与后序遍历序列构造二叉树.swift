@@ -39,13 +39,38 @@
 import Foundation
 
 extension TreeNode where T: Equatable {
+    
+    public convenience init?(inorder: [T], postorder: [T]) {
+        self.init(inorder: inorder, instart: 0, inend: inorder.count-1,
+                  postorder: postorder, pStart: postorder.count-1)
+    }
+    
+    private convenience init?(inorder: [T], instart: Int, inend: Int,
+                              postorder: [T], pStart: Int) {
+        guard pStart >= 0, instart <= inend else {
+            return nil
+        }
+        
+        self.init(postorder[pStart])
+        
+        var inindex = 0
+        for i in instart...inend where inorder[i] == self.val {
+            inindex = i
+            break
+        }
+        self.right = TreeNode<T>(inorder: inorder, instart: inindex+1, inend: inend,
+                                 postorder: postorder, pStart: pStart-1)
+        self.left = TreeNode<T>(inorder: inorder, instart: instart, inend: inindex-1,
+                                postorder: postorder, pStart: pStart-(inend-inindex)-1)
+    }
+    
     class func buildTree(inorder: [T], postorder: [T]) -> TreeNode? {
         return build(inorder: inorder, instart: 0, inend: inorder.count-1,
-                postorder: postorder, pStart: postorder.count-1)
+                     postorder: postorder, pStart: postorder.count-1)
     }
-
+    
     private class func build(inorder: [T], instart: Int, inend: Int,
-                     postorder: [T], pStart: Int) -> TreeNode? {
+                             postorder: [T], pStart: Int) -> TreeNode? {
         guard pStart >= 0, instart <= inend else {
             return nil
         }
@@ -56,9 +81,9 @@ extension TreeNode where T: Equatable {
             break
         }
         root.right = build(inorder: inorder, instart: inindex+1, inend: inend,
-                postorder: postorder, pStart: pStart-1)
+                           postorder: postorder, pStart: pStart-1)
         root.left = build(inorder: inorder, instart: instart, inend: inindex-1,
-                postorder: postorder, pStart: pStart-(inend-inindex)-1)
+                          postorder: postorder, pStart: pStart-(inend-inindex)-1)
         return root
     }
 }
