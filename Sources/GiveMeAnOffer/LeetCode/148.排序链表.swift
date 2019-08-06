@@ -47,13 +47,13 @@ extension ListNode where T: Comparable {
             cur1 = cur1?.next
             cur2 = cur2?.next?.next
         }
-        var node1 = pre?.next?.sorted()
+        let node1 = pre?.next?.sorted()
         pre?.next = nil
         let node2 = self.sorted()
         return merge(node1, node2)
     }
 
-    func merge(_ l1: ListNode?, _ l2: ListNode?) -> ListNode? {
+    private func merge(_ l1: ListNode?, _ l2: ListNode?) -> ListNode? {
         var cur1 = l1
         var cur2 = l2
 
@@ -69,12 +69,15 @@ extension ListNode where T: Comparable {
         }
         var cur = dummyHead
         while cur1 != nil || cur2 != nil {
-            if cur1 != nil {
+            if cur1 == nil {
                 cur?.next = cur2
                 cur2 = cur2?.next
             } else if cur2 == nil {
                 cur?.next = cur1
                 cur1 = cur1?.next
+            } else if cur1!.val > cur2!.val {
+                cur?.next = cur2
+                cur2 = cur2?.next
             } else {
                 cur?.next = cur1
                 cur1 = cur1?.next
