@@ -149,9 +149,6 @@ extension BinarySearchTree {
     }
     
     public func height() -> Int {
-        guard !isRoot else {
-            return maxDepth()
-        }
         if isLeaf {
             return 0
         } else {
