@@ -29,7 +29,7 @@ public class ChatRoom: NSObject {
         var writeStream: Unmanaged<CFWriteStream>?
 
         CFStreamCreatePairWithSocketToHost(kCFAllocatorDefault,
-                                           address as! CFString,
+                                           (address as! CFString),
                                            port,
                                            &readStream,
                                            &writeStream)
