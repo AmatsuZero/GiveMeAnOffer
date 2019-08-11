@@ -3,4 +3,4 @@
 /Packages
 /*.xcodeproj
 .idea
-DocEditor/themes
+docs/themes

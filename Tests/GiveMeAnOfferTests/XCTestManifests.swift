@@ -42,7 +42,7 @@ public func allTests() -> [XCTestCaseEntry] {
         testCase(ConstructRectangleTests.allTests),
         testCase(LicenseKeyFormattingTests.allTests),
         testCase(BinarySearchTreeTests.allTests),
-//        testCase(TrieTests.allTests),
+        testCase(TrieTests.allTests),
         testCase(EvalPRNTests.allTests),
         testCase(LRUCacheTests.allTests)
     ]
