@@ -10,8 +10,8 @@ import XCTest
 final class SingleNumberTests: XCTestCase {
 
     func testInput() {
-        XCTAssertEqual([2,2,1].singleNumber, 1)
-        XCTAssertEqual([4,1,2,1,2].singleNumber, 4)
+        XCTAssertEqual([2,2,1].singleNumber(), 1)
+        XCTAssertEqual([4,1,2,1,2].singleNumber(), 4)
     }
 
     static var allTests = [

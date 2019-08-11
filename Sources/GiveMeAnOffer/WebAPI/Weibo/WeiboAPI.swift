@@ -35,8 +35,8 @@ class WeiboAPI {
         shared = WeiboAPI(clientId: clientId, clientSecret: clientSecret, redirectURL: redirectURL)
     }
     
-    public func authorize(_ api: WeiboAuthorize) -> WeiboAuthorize.ResponseType? {
-        return api.request()
+    public func authorize(_ api: WeiboAuthorize) throws -> WeiboAuthorize.ResponseType? {
+        return try api.request()
     }
     
     public func accessToken(_ authorize: WeiboAuthorize, handler: @escaping (Error?, WeiBoStoredAccessToken?) -> Void) throws {
@@ -51,8 +51,9 @@ class WeiboAPI {
             return
         }
         
-        guard let code = self.authorize(authorize)?.code else {
-            throw WeiboAPIError.authorizeFailed
+        guard let code = try self.authorize(authorize)?.code else {
+            handler(WeiboAPIError.authorizeFailed, nil)
+            return
         }
         
         let api = WeiboAccessToken(code: code)

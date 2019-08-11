@@ -38,7 +38,7 @@
 import Foundation
 
 extension Array where Element == Int {
-    public var singleNumber: Int {
+    public func singleNumber() -> Int {
         var num = 0
         forEach { num = num ^ $0 }
         return num

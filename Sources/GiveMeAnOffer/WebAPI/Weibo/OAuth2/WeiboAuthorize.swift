@@ -33,13 +33,17 @@ public struct WeiboAuthorize {
     /// 授权页语言，缺省为中文简体版，en为英文版。英文版测试中，开发者任何意见可反馈至 @微博API
     public var language = ""
     
-    func request() -> ResponseType? {
-        guard let url = try? asURLComponents().url?.absoluteString else {
+    func request() throws -> ResponseType? {
+        guard let url = try asURLComponents().url?.absoluteString else {
             return nil
         }
         // 通过网页打开授权页
-        shell("open", url)
-        
+        #if !os(macOS)
+            shell("xdg-open", url)
+        #else
+            shell("open", url)
+        #endif
+
         // 输入授权后跳转的URL
         guard let tokenURL = takeInput(prompt: "输入授权后跳转的URL："),
             let components = URLComponents(string: tokenURL) else {

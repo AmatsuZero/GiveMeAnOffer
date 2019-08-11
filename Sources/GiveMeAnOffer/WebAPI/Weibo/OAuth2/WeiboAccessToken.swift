@@ -36,8 +36,8 @@ public class WeiBoStoredAccessToken: NSObject {
     }
     
     required public init?(coder aDecoder: NSCoder) {
-        expireDate = aDecoder.decodeObject(forKey: NSStringFromSelector(#selector(getter: expireDate))) as? Date
-        accessToken = aDecoder.decodeObject(forKey: NSStringFromSelector((#selector(getter: accessToken)))) as? String
+        expireDate = aDecoder.decodeObject(forKey: "expireDate") as? Date
+        accessToken = aDecoder.decodeObject(forKey: "accessToken") as? String
     }
     
     init(rawToken: WeiboRawToken) {
@@ -53,8 +53,8 @@ extension WeiBoStoredAccessToken: NSSecureCoding {
     }
     
     public func encode(with aCoder: NSCoder) {
-        aCoder.encode(expireDate, forKey: NSStringFromSelector(#selector(getter: expireDate)))
-        aCoder.encode(accessToken, forKey: NSStringFromSelector(#selector(getter: accessToken)))
+        aCoder.encode(expireDate, forKey: "expireDate")
+        aCoder.encode(accessToken, forKey: "accessToken")
     }
 }
 
