@@ -44,7 +44,8 @@ public func allTests() -> [XCTestCaseEntry] {
         testCase(BinarySearchTreeTests.allTests),
         testCase(TrieTests.allTests),
         testCase(EvalPRNTests.allTests),
-        testCase(LRUCacheTests.allTests)
+        testCase(LRUCacheTests.allTests),
+        testCase(WeiboAPITests.allTests)
     ]
 }
 #endif

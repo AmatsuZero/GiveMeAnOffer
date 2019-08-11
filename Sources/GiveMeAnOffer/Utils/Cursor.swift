@@ -40,9 +40,7 @@ public struct CursorEffect: OptionSet {
 
 public func print(effect: CursorEffect, _ content: String) {
     let effectDesc = effect.elements()
-            .map {
-                "\($0)"
-            }
+            .map { "\($0)" }
             .joined(separator: ";")
-    print("\\e[\(effectDesc)m\(content)\\e[0m")
+    print("\\e[\(effectDesc)m\(content)\\e[0m", terminator:"")
 }

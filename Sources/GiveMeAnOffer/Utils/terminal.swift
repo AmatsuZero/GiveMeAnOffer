@@ -29,3 +29,12 @@ func shell(_ args: String...) -> (code: Int32, output: String?) {
     #endif
     return (task.terminationStatus, output)
 }
+
+func takeInput(prompt: String = "") -> String? {
+
+    if prompt.count > 0 {
+        print(effect: .bold, prompt)
+    }
+
+    return readLine(strippingNewline: true)
+}
