@@ -18,7 +18,7 @@ class WeiboAPITests: XCTestCase {
             XCTFail("无法获取clientId和redirectURL")
             return
         }
-        WeiboAPI.register(clientId: clientId, clientSecret: secret, redirectURL: redirectURL)
+        try? WeiboAPI.register(clientId: clientId, clientSecret: secret, redirectURL: redirectURL)
     }
 
     override func tearDown() {
@@ -28,11 +28,15 @@ class WeiboAPITests: XCTestCase {
     func testOauthAuthorize() {
         var api = WeiboAuthorize()
         api.state = "test"
-        XCTAssertNotNil(WeiboAPI.shared.authorize(api))
+        do {
+            let code = try WeiboAPI.shared.authorize(api)
+            XCTAssertNotNil(code)
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
     }
     
     func testAccessToken() {
-        
         let expectation = self.expectation(description: "获取Token")
         let api = WeiboAuthorize()
         do {
@@ -49,6 +53,23 @@ class WeiboAPITests: XCTestCase {
             expectation.fulfill()
         }
         
+        waitForExpectations(timeout: 3, handler: nil)
+    }
+    
+    func testUpdateToken() {
+        let expectation = self.expectation(description: "获取Token")
+        var token = WeiboAPI.shared.accessToken?.accessToken
+        if token == nil {
+            testAccessToken()
+            token = WeiboAPI.shared.accessToken?.accessToken
+        }
+        guard let t = token else {
+            return
+        }
+        try? WeiboAPI.shared.updateToken(t) { (error, info) in
+            XCTAssertNotNil(info)
+            expectation.fulfill()
+        }
         waitForExpectations(timeout: 3, handler: nil)
     }
     

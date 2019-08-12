@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// OAuth2的authorize接口
 public struct WeiboAuthorize {
     /// 授权页面的终端类型
     ///

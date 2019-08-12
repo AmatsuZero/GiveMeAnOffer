@@ -30,6 +30,8 @@ public class WeiBoStoredAccessToken: NSObject {
     @objc public let expireDate: Date?
     /// 用户授权的唯一票据
     @objc public let accessToken: String?
+    /// 授权用户的UID，本字段只是为了方便开发者，减少一次user/show接口调用而返回的，第三方应用不能用此字段作为用户登录状态的识别，只有access_token才是用户授权的唯一票据。
+    @objc public let uid: String?
     
     var isValid: Bool {
         return expireDate != nil && expireDate! > Date()
@@ -38,11 +40,20 @@ public class WeiBoStoredAccessToken: NSObject {
     required public init?(coder aDecoder: NSCoder) {
         expireDate = aDecoder.decodeObject(forKey: "expireDate") as? Date
         accessToken = aDecoder.decodeObject(forKey: "accessToken") as? String
+        uid = aDecoder.decodeObject(forKey: "uid") as? String
     }
     
     init(rawToken: WeiboRawToken) {
         self.accessToken = rawToken.token
         self.expireDate = Date(timeIntervalSinceNow: rawToken.expiresIn)
+        self.uid = rawToken.uid
+    }
+    
+    init(accessToken: String, tokenInfo: WeiboTokenInfo) {
+        self.accessToken = accessToken
+        self.uid = "\(tokenInfo.uid)"
+        let createDate = Date(timeIntervalSince1970: tokenInfo.createAt)
+        self.expireDate = Date(timeInterval: tokenInfo.expireIn, since: createDate)
     }
 }
 
@@ -55,9 +66,11 @@ extension WeiBoStoredAccessToken: NSSecureCoding {
     public func encode(with aCoder: NSCoder) {
         aCoder.encode(expireDate, forKey: "expireDate")
         aCoder.encode(accessToken, forKey: "accessToken")
+        aCoder.encode(uid, forKey: "uid")
     }
 }
 
+/// OAuth2的access_token接口
 struct WeiboAccessToken {
     /// 申请应用时分配的AppKey。
     let clientID = WeiboAPI.shared.clientId
@@ -77,7 +90,7 @@ struct WeiboAccessToken {
     }()
     
     static let tokenPath: URL = {
-        return tokenFolderPath.appendingPathComponent("accesstoken")
+        return tokenFolderPath.appendingPathComponent("\(WeiboAPI.shared.clientId)")
     }()
     
     public init(code: String) {
