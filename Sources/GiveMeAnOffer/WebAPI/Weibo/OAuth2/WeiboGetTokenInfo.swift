@@ -36,20 +36,25 @@ struct WeiboGetTokenInfo {
     let accessToken: String
     
     @discardableResult
-    func request(_ handler: @escaping (Error?, WeiBoStoredAccessToken?) -> Void) throws -> URLSessionDataTask {
-        let accessToken = self.accessToken
-        let task = WeiboAPI.shared.session.dataTask(with: try asRequest()) { (data, _, error) in
-            guard error == nil, let data = data else {
-                handler(error, nil)
-                return
+    func request(handler: @escaping (Error?, WeiBoStoredAccessToken?) -> Void) -> URLSessionDataTask? {
+        var task: URLSessionDataTask?
+        do {
+            let accessToken = self.accessToken
+            task = WeiboAPI.shared.session.dataTask(with: try asRequest()) { (data, _, error) in
+                guard error == nil, let data = data else {
+                    handler(error, nil)
+                    return
+                }
+                do {
+                    let raw = try JSONDecoder().decode(WeiboTokenInfo.self, from: data)
+                    let token = WeiBoStoredAccessToken(accessToken: accessToken, tokenInfo: raw)
+                    handler(nil, token)
+                } catch let e {
+                    handler(e, nil)
+                }
             }
-            do {
-                let raw = try JSONDecoder().decode(WeiboTokenInfo.self, from: data)
-                let token = WeiBoStoredAccessToken(accessToken: accessToken, tokenInfo: raw)
-                handler(nil, token)
-            } catch let e {
-                handler(e, nil)
-            }
+        } catch {
+             handler(error, nil)
         }
         return task
     }

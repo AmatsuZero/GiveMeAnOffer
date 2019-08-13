@@ -98,20 +98,26 @@ struct WeiboAccessToken {
     }
     
     @discardableResult
-    func request(_ handler: @escaping (Error?, WeiBoStoredAccessToken?) -> Void) throws -> URLSessionDataTask {
-        let task = WeiboAPI.shared.session.dataTask(with: try asRequest()) { (data, _, error) in
-            guard error == nil, let data = data else {
-                handler(error, nil)
-                return
+    func request(handler: @escaping (Error?, WeiBoStoredAccessToken?) -> Void) -> URLSessionDataTask? {
+        var task: URLSessionDataTask?
+        do {
+            task = WeiboAPI.shared.session.dataTask(with: try asRequest()) { (data, _, error) in
+                guard error == nil, let data = data else {
+                    handler(error, nil)
+                    return
+                }
+                do {
+                    let raw = try JSONDecoder().decode(WeiboRawToken.self, from: data)
+                    let token = WeiBoStoredAccessToken(rawToken: raw)
+                    NSKeyedArchiver.archiveRootObject(token, toFile: WeiboAccessToken.tokenPath.path)
+                    handler(nil, token)
+                } catch let e {
+                    handler(e, nil)
+                }
             }
-            do {
-                let raw = try JSONDecoder().decode(WeiboRawToken.self, from: data)
-                let token = WeiBoStoredAccessToken(rawToken: raw)
-                NSKeyedArchiver.archiveRootObject(token, toFile: WeiboAccessToken.tokenPath.path)
-                handler(nil, token)
-            } catch let e {
-                handler(e, nil)
-            }
+            
+        } catch {
+            handler(error, nil)
         }
         return task
     }

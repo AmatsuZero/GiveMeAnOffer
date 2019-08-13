@@ -51,8 +51,6 @@ protocol WebAPIRequestProtocol {
 
 extension WebAPIRequestProtocol {
     
-    
-    
     func asURL() throws -> URL {
         guard let url = URL(string: path, relativeTo: WeiboAPI.baseURL) else {
             throw WebAPIError.invalidURL

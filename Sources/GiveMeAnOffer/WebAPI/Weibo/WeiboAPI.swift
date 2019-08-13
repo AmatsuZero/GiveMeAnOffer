@@ -9,6 +9,7 @@ import Foundation
 
 enum WeiboAPIError: Error {
     case authorizeFailed
+    case noAccessToken
 }
 
 class WeiboAPI {
@@ -53,33 +54,49 @@ class WeiboAPI {
         return try api.request()
     }
     
-    public func accessToken(_ authorize: WeiboAuthorize, handler: @escaping (Error?, WeiBoStoredAccessToken?) -> Void) throws {
+    public func accessToken(_ authorize: WeiboAuthorize, handler: @escaping (Error?, WeiBoStoredAccessToken?) -> Void)  {
         
         guard accessToken == nil else {
             handler(nil, accessToken)
             return
         }
-        
-        guard let code = try self.authorize(authorize)?.code else {
-            handler(WeiboAPIError.authorizeFailed, nil)
-            return
+        do {
+            guard let code = try self.authorize(authorize)?.code else {
+                handler(WeiboAPIError.authorizeFailed, nil)
+                return
+            }
+            
+            let api = WeiboAccessToken(code: code)
+            api.request(handler: handler)?.resume()
+        } catch {
+            handler(error, nil)
         }
-        
-        let api = WeiboAccessToken(code: code)
-        try api.request(handler).resume()
     }
     
-    public func updateToken(_ token: String, handler: ((Error?, WeiBoStoredAccessToken?) -> Void)? = nil) throws {
+    public func updateToken(_ token: String, handler: ((Error?, WeiBoStoredAccessToken?) -> Void)? = nil) {
         let api = WeiboGetTokenInfo(accessToken: token)
-        try api.request { [weak self] (error, tokenInfo) in
+        api.request { [weak self] (error, tokenInfo) in
             self?.accessToken = tokenInfo
+            // 写入磁盘
+            if let newToken = tokenInfo {
+                NSKeyedArchiver.archiveRootObject(newToken, toFile: WeiboAccessToken.tokenPath.path)
+            }
             handler?(error, tokenInfo)
-        }.resume()
+        }?.resume()
+    }
+    
+    public func revoke(handler: @escaping (Error?, WeiboRevokeAuthResponse?) -> Void) {
+        guard let token = accessToken?.accessToken else {
+            handler(WeiboAPIError.noAccessToken, nil)
+            return
+        }
+        let api = WeiboRevokeAuthTwo(accessToken: token)
+        api.request(handler: handler)?.resume()
     }
 }
 
 extension WeiboAPI {
-    func importToken(_ token: String, handler: ((Error?, WeiBoStoredAccessToken?) -> Void)? = nil) throws {
-        try updateToken(token, handler: handler)
+    func importToken(_ token: String, handler: ((Error?, WeiBoStoredAccessToken?) -> Void)? = nil) {
+        updateToken(token, handler: handler)
     }
 }
