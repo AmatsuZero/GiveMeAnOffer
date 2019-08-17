@@ -38,3 +38,4 @@ func takeInput(prompt: String = "") -> String? {
 
     return readLine(strippingNewline: true)
 }
+

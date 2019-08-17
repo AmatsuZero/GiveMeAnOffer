@@ -99,4 +99,12 @@ extension WebAPIRequestProtocol {
     }
 }
 
-
+extension Data {
+    mutating func appendString(_ string: String) {
+        guard let data = string.data(using: .utf8, allowLossyConversion: false) else {
+            return
+        }
+        self.append(data)
+    }
+}
+//

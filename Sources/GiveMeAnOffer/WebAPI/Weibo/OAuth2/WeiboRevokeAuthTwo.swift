@@ -56,7 +56,6 @@ extension WeiboRevokeAuthTwo: WebAPIRequestProtocol {
         return WeiboAPI.baseURL
     }
     
-    
     typealias ResponseType = WeiboRevokeAuthResponse
     
     var params: [String : Any] {

@@ -45,7 +45,6 @@ public func allTests() -> [XCTestCaseEntry] {
         testCase(TrieTests.allTests),
         testCase(EvalPRNTests.allTests),
         testCase(LRUCacheTests.allTests),
-        testCase(WeiboAPITests.allTests)
     ]
 }
 #endif

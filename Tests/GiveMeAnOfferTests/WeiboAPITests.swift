@@ -39,17 +39,12 @@ class WeiboAPITests: XCTestCase {
     func testAccessToken() {
         let expectation = self.expectation(description: "获取Token")
         let api = WeiboAuthorize()
-        do {
-            try WeiboAPI.shared.accessToken(api) { (error, token) in
-                if let error = error {
-                    XCTFail(error.localizedDescription)
-                } else {
-                    XCTAssertNotNil(token)
-                }
-                expectation.fulfill()
+        WeiboAPI.shared.accessToken(api) { (error, token) in
+            if let error = error {
+                XCTFail(error.localizedDescription)
+            } else {
+                XCTAssertNotNil(token)
             }
-        } catch {
-            XCTFail(error.localizedDescription)
             expectation.fulfill()
         }
         
@@ -66,15 +61,20 @@ class WeiboAPITests: XCTestCase {
         guard let t = token else {
             return
         }
-        try? WeiboAPI.shared.updateToken(t) { (error, info) in
+        WeiboAPI.shared.updateToken(t) { (error, info) in
             XCTAssertNotNil(info)
             expectation.fulfill()
         }
         waitForExpectations(timeout: 3, handler: nil)
     }
     
+    func testShare() {
+        
+    }
+    
     static var allTests = [
         ("authorize接口", testOauthAuthorize),
-        ("获取Token", testAccessToken)
+        ("获取Token", testAccessToken),
+        ("测试分享", testShare)
     ]
 }
